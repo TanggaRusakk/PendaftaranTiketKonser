@@ -47,7 +47,7 @@ class TicketController extends Controller
                     'name' => 'Festival (Free Standing)',
                     'price' => 950000,
                     'badge' => 'Terpopuler',
-                    'color' => 'fuchsia',
+                    'color' => 'orange',
                     'quota' => 200,
                     'description' => 'Area berdiri interaktif tepat di depan panggung utama untuk pengalaman konser paling energik.',
                     'perks' => [
@@ -62,7 +62,7 @@ class TicketController extends Controller
                     'name' => 'CAT 1 (Numbered Seated)',
                     'price' => 650000,
                     'badge' => 'Best View',
-                    'color' => 'cyan',
+                    'color' => 'rose',
                     'quota' => 120,
                     'description' => 'Tempat duduk bernomor di tribun bawah dengan sudut pandang panggung lurus dan lega.',
                     'perks' => [
@@ -77,7 +77,7 @@ class TicketController extends Controller
                     'name' => 'CAT 2 (Upper Tribune)',
                     'price' => 400000,
                     'badge' => 'Best Value',
-                    'color' => 'indigo',
+                    'color' => 'yellow',
                     'quota' => 250,
                     'description' => 'Tempat duduk tribun atas dengan panorama megah seluruh stadion dan tata cahaya konser.',
                     'perks' => [

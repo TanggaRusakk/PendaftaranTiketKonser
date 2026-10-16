@@ -233,51 +233,52 @@ const scrollToSection = (id: string) => {
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     </Head>
 
-    <div class="min-h-screen bg-[#070913] text-slate-100 selection:bg-fuchsia-500 selection:text-white" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-        <!-- Ambient Glowing Background Elements -->
+    <!-- Sunset Horizon Palette: Warm Amber, Golden Orange, Crimson Rose, Dark Velvet Base -->
+    <div class="min-h-screen bg-[#0c070c] text-slate-100 selection:bg-amber-500 selection:text-slate-950" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+        <!-- Ambient Glowing Background Elements (Warm Sunset Gradients) -->
         <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-            <div class="absolute -top-[20%] -left-[10%] w-[650px] h-[650px] rounded-full bg-violet-600/20 blur-[130px]"></div>
-            <div class="absolute top-[25%] -right-[15%] w-[600px] h-[600px] rounded-full bg-fuchsia-600/20 blur-[140px]"></div>
-            <div class="absolute -bottom-[10%] left-[20%] w-[700px] h-[700px] rounded-full bg-cyan-600/15 blur-[150px]"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:24px_24px]"></div>
+            <div class="absolute -top-[15%] -left-[10%] w-[650px] h-[650px] rounded-full bg-amber-500/20 blur-[130px]"></div>
+            <div class="absolute top-[20%] -right-[15%] w-[620px] h-[620px] rounded-full bg-orange-600/20 blur-[140px]"></div>
+            <div class="absolute -bottom-[10%] left-[25%] w-[700px] h-[700px] rounded-full bg-rose-600/15 blur-[150px]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px]"></div>
         </div>
 
         <!-- Sticky Header / Navigation -->
-        <header class="sticky top-0 z-40 border-b border-white/10 bg-[#070913]/80 backdrop-blur-xl">
+        <header class="sticky top-0 z-40 border-b border-white/10 bg-[#0c070c]/85 backdrop-blur-xl">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-pink-500 p-0.5 shadow-lg shadow-fuchsia-500/25">
-                        <div class="w-full h-full bg-[#070913] rounded-[14px] flex items-center justify-center">
-                            <Music class="w-5 h-5 text-fuchsia-400 animate-pulse" />
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 p-0.5 shadow-lg shadow-orange-500/25">
+                        <div class="w-full h-full bg-[#0c070c] rounded-[14px] flex items-center justify-center">
+                            <Music class="w-5 h-5 text-amber-400 animate-pulse" />
                         </div>
                     </div>
                     <div>
-                        <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">
+                        <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 bg-clip-text text-transparent">
                             NEON ECHOES
                         </span>
-                        <span class="block text-[10px] tracking-widest uppercase text-violet-400 font-semibold">Fest Jakarta 2025</span>
+                        <span class="block text-[10px] tracking-widest uppercase text-amber-400 font-semibold">Sunset Horizon Tour 2025</span>
                     </div>
                 </div>
 
                 <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                    <button @click="scrollToSection('lineup')" class="hover:text-fuchsia-400 transition-colors">Lineup Artis</button>
-                    <button @click="scrollToSection('kategori')" class="hover:text-fuchsia-400 transition-colors">Kategori & Harga</button>
-                    <button @click="scrollToSection('stage')" class="hover:text-fuchsia-400 transition-colors">Denah Panggung</button>
-                    <button @click="scrollToSection('form-order')" class="hover:text-fuchsia-400 transition-colors">Pesan Tiket</button>
-                    <button @click="scrollToSection('faq')" class="hover:text-fuchsia-400 transition-colors">FAQ</button>
+                    <button @click="scrollToSection('lineup')" class="hover:text-amber-400 transition-colors">Lineup Artis</button>
+                    <button @click="scrollToSection('kategori')" class="hover:text-amber-400 transition-colors">Kategori & Harga</button>
+                    <button @click="scrollToSection('stage')" class="hover:text-amber-400 transition-colors">Denah Panggung</button>
+                    <button @click="scrollToSection('form-order')" class="hover:text-amber-400 transition-colors">Pesan Tiket</button>
+                    <button @click="scrollToSection('faq')" class="hover:text-amber-400 transition-colors">FAQ</button>
                 </nav>
 
                 <div class="flex items-center gap-3">
                     <button
                         @click="checkModalOpen = true"
-                        class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center gap-2 shadow-sm"
+                        class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-200 transition-all flex items-center gap-2 shadow-sm"
                     >
-                        <Search class="w-4 h-4 text-cyan-400" />
+                        <Search class="w-4 h-4 text-amber-400" />
                         <span>Cek E-Ticket</span>
                     </button>
                     <button
                         @click="scrollToSection('form-order')"
-                        class="hidden sm:inline-flex px-5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:via-fuchsia-500 hover:to-pink-500 text-white shadow-lg shadow-fuchsia-600/30 hover:shadow-fuchsia-600/50 transition-all transform active:scale-95"
+                        class="hidden sm:inline-flex px-5 py-2 text-xs sm:text-sm font-black rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 text-slate-950 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all transform active:scale-95"
                     >
                         Beli Tiket
                     </button>
@@ -287,18 +288,18 @@ const scrollToSection = (id: string) => {
 
         <!-- Flash Success Notification if any -->
         <div v-if="props.flash?.success && !isReceiptModalOpen" class="relative z-30 max-w-4xl mx-auto px-4 mt-6">
-            <div class="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 backdrop-blur-md flex items-center justify-between gap-4 text-emerald-200 shadow-xl shadow-emerald-950/50">
+            <div class="p-4 rounded-2xl bg-amber-950/80 border border-amber-500/50 backdrop-blur-md flex items-center justify-between gap-4 text-amber-200 shadow-xl shadow-amber-950/50">
                 <div class="flex items-center gap-3">
-                    <CheckCircle2 class="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle2 class="w-6 h-6 text-amber-400 flex-shrink-0" />
                     <div>
-                        <p class="font-bold text-emerald-100">Registrasi Berhasil!</p>
-                        <p class="text-xs text-emerald-300">{{ props.flash.success }}</p>
+                        <p class="font-bold text-amber-100">Registrasi Berhasil!</p>
+                        <p class="text-xs text-amber-300">{{ props.flash.success }}</p>
                     </div>
                 </div>
                 <button
                     v-if="props.recentTicket"
                     @click="openReceipt(props.recentTicket)"
-                    class="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black transition-colors"
+                    class="px-4 py-1.5 text-xs font-black rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 transition-colors"
                 >
                     Lihat E-Ticket
                 </button>
@@ -308,52 +309,52 @@ const scrollToSection = (id: string) => {
         <main class="relative z-10">
             <!-- HERO SECTION -->
             <section class="pt-12 pb-16 lg:pt-20 lg:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-violet-500/30 bg-violet-950/40 backdrop-blur-md mb-8">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span class="text-xs font-semibold tracking-wide text-violet-300">OFFICIAL PRESALE PHASE 2 • TIKET TERBATAS</span>
+                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-950/40 backdrop-blur-md mb-8">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span class="text-xs font-semibold tracking-wide text-amber-300">SUNSET PRESALE PHASE 2 • TIKET TERBATAS</span>
                 </div>
 
                 <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight max-w-5xl mx-auto">
                     RASAKAN ENERGI SPEKTAKULER DI <br />
-                    <span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">
+                    <span class="bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 bg-clip-text text-transparent drop-shadow-sm">
                         {{ event.title }}
                     </span>
                 </h1>
 
-                <p class="mt-6 text-base sm:text-xl text-slate-400 max-w-3xl mx-auto font-normal leading-relaxed">
-                    {{ event.tagline }}. Bergabunglah bersama puluhan ribu penikmat musik dalam malam paling megah tahun ini!
+                <p class="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
+                    {{ event.tagline }}. Bergabunglah bersama puluhan ribu penikmat musik di bawah gemerlap langit senja Jakarta!
                 </p>
 
                 <!-- Event Meta Pills -->
                 <div class="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
                     <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <Calendar class="w-4 h-4 text-fuchsia-400" />
+                        <Calendar class="w-4 h-4 text-amber-400" />
                         <span>{{ event.date }}</span>
                     </div>
                     <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <Clock class="w-4 h-4 text-cyan-400" />
+                        <Clock class="w-4 h-4 text-orange-400" />
                         <span>{{ event.time }}</span>
                     </div>
                     <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <MapPin class="w-4 h-4 text-amber-400" />
+                        <MapPin class="w-4 h-4 text-rose-400" />
                         <span>{{ event.venue }}</span>
                     </div>
                 </div>
 
                 <!-- Live Booking Counter Badge -->
                 <div class="mt-10 flex items-center justify-center gap-3">
-                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-fuchsia-950/60 to-violet-950/60 border border-fuchsia-500/30 text-xs sm:text-sm font-medium text-slate-300">
-                        <Flame class="w-5 h-5 text-orange-400 animate-bounce" />
-                        <span><strong class="text-white font-extrabold">{{ totalBookedCount }}+</strong> Tiket Terverifikasi • Kuota VIP Tersisa Sedikit!</span>
+                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-950/60 to-rose-950/60 border border-orange-500/30 text-xs sm:text-sm font-medium text-slate-300">
+                        <Flame class="w-5 h-5 text-amber-400 animate-bounce" />
+                        <span><strong class="text-white font-extrabold">{{ totalBookedCount }}+</strong> Tiket Terverifikasi • Kuota VIP Menipis Cepat!</span>
                     </div>
                 </div>
 
                 <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
                     <button
                         @click="scrollToSection('form-order')"
-                        class="px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:via-fuchsia-500 hover:to-pink-500 text-white font-extrabold text-base tracking-wide shadow-xl shadow-fuchsia-600/30 hover:shadow-fuchsia-600/50 hover:-translate-y-0.5 transition-all flex items-center gap-3"
+                        class="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 transition-all flex items-center gap-3"
                     >
-                        <Ticket class="w-5 h-5" />
+                        <Ticket class="w-5 h-5 text-slate-950" />
                         <span>Pesan Tiket Sekarang</span>
                     </button>
                     <button
@@ -366,10 +367,10 @@ const scrollToSection = (id: string) => {
             </section>
 
             <!-- GUEST STARS / LINEUP MARQUEE -->
-            <section id="lineup" class="py-12 border-y border-white/10 bg-slate-950/40 backdrop-blur-md">
+            <section id="lineup" class="py-12 border-y border-white/10 bg-black/40 backdrop-blur-md">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="text-center mb-8">
-                        <span class="text-xs uppercase tracking-widest font-extrabold text-fuchsia-400">Exclusive Lineup</span>
+                        <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Exclusive Lineup</span>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Bintang Tamu Utama</h2>
                     </div>
 
@@ -377,15 +378,15 @@ const scrollToSection = (id: string) => {
                         <div
                             v-for="(artist, index) in event.artists"
                             :key="index"
-                            class="group relative rounded-2xl p-5 bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 hover:border-fuchsia-500/50 transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 hover:-translate-y-1"
+                            class="group relative rounded-2xl p-5 bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 hover:border-amber-500/50 transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 hover:-translate-y-1"
                         >
-                            <div class="w-12 h-12 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-300 group-hover:scale-110 group-hover:bg-fuchsia-600/30 transition-all">
+                            <div class="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-orange-500/25 group-hover:text-orange-300 transition-all">
                                 <Sparkles class="w-5 h-5" />
                             </div>
-                            <span class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-fuchsia-300 transition-colors">
+                            <span class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-amber-300 transition-colors">
                                 {{ artist }}
                             </span>
-                            <span class="text-[11px] text-slate-400 font-medium">Live Performance</span>
+                            <span class="text-[11px] text-slate-400 font-medium">Live Sunset Show</span>
                         </div>
                     </div>
                 </div>
@@ -394,10 +395,10 @@ const scrollToSection = (id: string) => {
             <!-- TICKET TIERS SELECTION -->
             <section id="kategori" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto mb-16">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-violet-400">Tier Selection</span>
+                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Tier Selection</span>
                     <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Pilih Kategori Tiket Konser</h2>
                     <p class="mt-4 text-slate-400 text-sm sm:text-base">
-                        Semua tiket sudah termasuk akses panggung, wristband resmi konser, dan fasilitas standar keselamatan internasional.
+                        Semua tiket sudah termasuk akses arena, wristband resmi konser, dan fasilitas standar keselamatan internasional.
                     </p>
                 </div>
 
@@ -409,8 +410,8 @@ const scrollToSection = (id: string) => {
                         :class="[
                             'relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer transition-all duration-300 border',
                             form.ticket_tier === tier.id
-                                ? 'bg-gradient-to-b from-violet-950/80 via-slate-900/90 to-slate-950 border-fuchsia-500 ring-2 ring-fuchsia-500/50 shadow-2xl shadow-fuchsia-950/80 transform -translate-y-2'
-                                : 'bg-slate-900/50 hover:bg-slate-900/80 border-white/10 hover:border-white/25 hover:-translate-y-1'
+                                ? 'bg-gradient-to-b from-orange-950/70 via-stone-900/90 to-black border-amber-500 ring-2 ring-amber-500/50 shadow-2xl shadow-orange-950/80 transform -translate-y-2'
+                                : 'bg-stone-900/40 hover:bg-stone-900/70 border-white/10 hover:border-amber-500/30 hover:-translate-y-1'
                         ]"
                     >
                         <!-- Top Badge -->
@@ -420,9 +421,9 @@ const scrollToSection = (id: string) => {
                                     :class="[
                                         'px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider',
                                         tier.id === 'vip' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                                        tier.id === 'festival' ? 'bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40' :
-                                        tier.id === 'cat1' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40' :
-                                        'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                                        tier.id === 'festival' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
+                                        tier.id === 'cat1' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+                                        'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
                                     ]"
                                 >
                                     {{ tier.badge }}
@@ -443,7 +444,7 @@ const scrollToSection = (id: string) => {
                             <!-- Perks List -->
                             <ul class="space-y-3 text-xs sm:text-[13px] text-slate-300 mb-8">
                                 <li v-for="(perk, pidx) in tier.perks" :key="pidx" class="flex items-start gap-2.5">
-                                    <CheckCircle2 class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                                    <CheckCircle2 class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                                     <span>{{ perk }}</span>
                                 </li>
                             </ul>
@@ -453,9 +454,9 @@ const scrollToSection = (id: string) => {
                         <button
                             type="button"
                             :class="[
-                                'w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2',
+                                'w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2',
                                 form.ticket_tier === tier.id
-                                    ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-fuchsia-600/30'
+                                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 shadow-lg shadow-orange-500/25'
                                     : 'bg-white/10 hover:bg-white/15 text-slate-200'
                             ]"
                         >
@@ -468,9 +469,9 @@ const scrollToSection = (id: string) => {
 
             <!-- STAGE LAYOUT SECTION -->
             <section id="stage" class="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="rounded-3xl p-6 sm:p-10 bg-slate-900/60 border border-white/10 backdrop-blur-xl">
+                <div class="rounded-3xl p-6 sm:p-10 bg-stone-900/60 border border-white/10 backdrop-blur-xl">
                     <div class="text-center max-w-2xl mx-auto mb-8">
-                        <span class="text-xs uppercase tracking-widest font-extrabold text-cyan-400">Arena Map</span>
+                        <span class="text-xs uppercase tracking-widest font-extrabold text-orange-400">Arena Map</span>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Denah Panggung & Zona Tempat Duduk</h2>
                         <p class="text-xs sm:text-sm text-slate-400 mt-2">
                             Klik pada zona di bawah untuk memilih kategori tiket langsung ke formulir pemesanan.
@@ -478,9 +479,9 @@ const scrollToSection = (id: string) => {
                     </div>
 
                     <!-- Interactive SVG Styled Stage Illustration -->
-                    <div class="relative bg-slate-950/80 rounded-2xl border border-white/10 p-6 flex flex-col items-center overflow-hidden">
+                    <div class="relative bg-black/80 rounded-2xl border border-white/10 p-6 flex flex-col items-center overflow-hidden">
                         <!-- Stage Box -->
-                        <div class="w-full max-w-md py-4 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-center font-black tracking-widest uppercase text-white shadow-lg shadow-fuchsia-500/20 mb-4 text-sm sm:text-base border border-white/20">
+                        <div class="w-full max-w-md py-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-center font-black tracking-widest uppercase text-slate-950 shadow-lg shadow-orange-500/25 mb-4 text-sm sm:text-base border border-amber-300/40">
                             🎤 MAIN STAGE (PANGGUNG UTAMA)
                         </div>
 
@@ -490,8 +491,8 @@ const scrollToSection = (id: string) => {
                             :class="[
                                 'w-full max-w-lg py-5 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
                                 form.ticket_tier === 'vip'
-                                    ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400'
-                                    : 'bg-amber-950/20 border-amber-500/40 text-amber-300 hover:bg-amber-950/40'
+                                    ? 'bg-amber-500/25 border-amber-400 text-amber-200 ring-2 ring-amber-400 shadow-md shadow-amber-950/50'
+                                    : 'bg-amber-950/25 border-amber-500/40 text-amber-300 hover:bg-amber-950/40'
                             ]"
                         >
                             <span class="font-extrabold text-sm block">★ VIP LOUNGE & PIT ★</span>
@@ -504,8 +505,8 @@ const scrollToSection = (id: string) => {
                             :class="[
                                 'w-full max-w-xl py-6 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
                                 form.ticket_tier === 'festival'
-                                    ? 'bg-fuchsia-500/20 border-fuchsia-400 text-fuchsia-200 ring-2 ring-fuchsia-400'
-                                    : 'bg-fuchsia-950/20 border-fuchsia-500/40 text-fuchsia-300 hover:bg-fuchsia-950/40'
+                                    ? 'bg-orange-500/25 border-orange-400 text-orange-200 ring-2 ring-orange-400 shadow-md shadow-orange-950/50'
+                                    : 'bg-orange-950/25 border-orange-500/40 text-orange-300 hover:bg-orange-950/40'
                             ]"
                         >
                             <span class="font-extrabold text-sm block">⚡ FESTIVAL (FREE STANDING) ⚡</span>
@@ -513,7 +514,7 @@ const scrollToSection = (id: string) => {
                         </div>
 
                         <!-- Sound Console -->
-                        <div class="w-36 py-1.5 rounded-lg bg-slate-800 text-[10px] text-slate-400 uppercase tracking-widest font-bold text-center mb-3">
+                        <div class="w-36 py-1.5 rounded-lg bg-stone-800 text-[10px] text-slate-400 uppercase tracking-widest font-bold text-center mb-3">
                             FOH SOUND CONSOLE
                         </div>
 
@@ -523,8 +524,8 @@ const scrollToSection = (id: string) => {
                             :class="[
                                 'w-full max-w-2xl py-5 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
                                 form.ticket_tier === 'cat1'
-                                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 ring-2 ring-cyan-400'
-                                    : 'bg-cyan-950/20 border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/40'
+                                    ? 'bg-rose-500/25 border-rose-400 text-rose-200 ring-2 ring-rose-400 shadow-md shadow-rose-950/50'
+                                    : 'bg-rose-950/25 border-rose-500/40 text-rose-300 hover:bg-rose-950/40'
                             ]"
                         >
                             <span class="font-extrabold text-sm block">● CAT 1 (NUMBERED SEATING - LOWER TRIBUNE) ●</span>
@@ -537,8 +538,8 @@ const scrollToSection = (id: string) => {
                             :class="[
                                 'w-full max-w-3xl py-5 px-4 rounded-xl border text-center cursor-pointer transition-all',
                                 form.ticket_tier === 'cat2'
-                                    ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200 ring-2 ring-indigo-400'
-                                    : 'bg-indigo-950/20 border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/40'
+                                    ? 'bg-yellow-500/25 border-yellow-400 text-yellow-200 ring-2 ring-yellow-400 shadow-md shadow-yellow-950/50'
+                                    : 'bg-stone-900/80 border-amber-800/40 text-amber-200/90 hover:bg-stone-900'
                             ]"
                         >
                             <span class="font-extrabold text-sm block">▲ CAT 2 (UPPER TRIBUNE) ▲</span>
@@ -551,7 +552,7 @@ const scrollToSection = (id: string) => {
             <!-- REGISTRATION FORM SECTION -->
             <section id="form-order" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-2xl mx-auto mb-12">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-fuchsia-400">Checkout Online</span>
+                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Checkout Online</span>
                     <h2 class="text-3xl sm:text-4xl font-black text-white mt-1">Formulir Pendaftaran Tiket</h2>
                     <p class="text-slate-400 text-sm mt-2">
                         Isi data diri dengan teliti. E-Ticket resmi beserta QR Code akan langsung diterbitkan setelah konfirmasi pemesanan.
@@ -563,9 +564,9 @@ const scrollToSection = (id: string) => {
                         <!-- LEFT COLUMN: Form Fields (7 cols) -->
                         <div class="lg:col-span-7 space-y-6">
                             <!-- Card 1: Data Pemesan -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-slate-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
+                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
                                 <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/40 flex items-center justify-center text-violet-400 font-bold text-sm">
+                                    <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm">
                                         1
                                     </div>
                                     <div>
@@ -578,7 +579,7 @@ const scrollToSection = (id: string) => {
                                     <!-- Nama Lengkap -->
                                     <div>
                                         <label for="full_name" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Nama Lengkap (Sesuai KTP/Identitas) <span class="text-fuchsia-400">*</span>
+                                            Nama Lengkap (Sesuai KTP/Identitas) <span class="text-amber-400">*</span>
                                         </label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -590,7 +591,7 @@ const scrollToSection = (id: string) => {
                                                 type="text"
                                                 placeholder="Contoh: Raditya Danendra"
                                                 required
-                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/15 focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/20 text-white placeholder-slate-500 text-sm transition-all"
+                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
                                                 :class="{ 'border-rose-500': form.errors.full_name }"
                                             />
                                         </div>
@@ -603,7 +604,7 @@ const scrollToSection = (id: string) => {
                                     <div>
                                         <div class="flex items-center justify-between mb-2">
                                             <label for="identity_number" class="text-xs font-bold uppercase tracking-wider text-slate-300">
-                                                Nomor Induk Kependudukan (NIK 16 Digit) <span class="text-fuchsia-400">*</span>
+                                                Nomor Induk Kependudukan (NIK 16 Digit) <span class="text-amber-400">*</span>
                                             </label>
                                             <span class="text-[11px] text-slate-400">{{ form.identity_number.length }}/16 digit</span>
                                         </div>
@@ -618,7 +619,7 @@ const scrollToSection = (id: string) => {
                                                 maxlength="16"
                                                 placeholder="Contoh: 3171012345678901"
                                                 required
-                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/15 focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/20 text-white placeholder-slate-500 text-sm transition-all"
+                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
                                                 :class="{ 'border-rose-500': form.errors.identity_number }"
                                             />
                                         </div>
@@ -632,7 +633,7 @@ const scrollToSection = (id: string) => {
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                         <div>
                                             <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                                Email Konfirmasi <span class="text-fuchsia-400">*</span>
+                                                Email Konfirmasi <span class="text-amber-400">*</span>
                                             </label>
                                             <div class="relative">
                                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -644,7 +645,7 @@ const scrollToSection = (id: string) => {
                                                     type="email"
                                                     placeholder="nama@email.com"
                                                     required
-                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/15 focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/20 text-white placeholder-slate-500 text-sm transition-all"
+                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
                                                     :class="{ 'border-rose-500': form.errors.email }"
                                                 />
                                             </div>
@@ -655,7 +656,7 @@ const scrollToSection = (id: string) => {
 
                                         <div>
                                             <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                                No. WhatsApp / HP Aktif <span class="text-fuchsia-400">*</span>
+                                                No. WhatsApp / HP Aktif <span class="text-amber-400">*</span>
                                             </label>
                                             <div class="relative">
                                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -667,7 +668,7 @@ const scrollToSection = (id: string) => {
                                                     type="tel"
                                                     placeholder="081234567890"
                                                     required
-                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/15 focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/20 text-white placeholder-slate-500 text-sm transition-all"
+                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
                                                     :class="{ 'border-rose-500': form.errors.phone }"
                                                 />
                                             </div>
@@ -680,9 +681,9 @@ const scrollToSection = (id: string) => {
                             </div>
 
                             <!-- Card 2: Jumlah & Kategori Tiket -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-slate-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
+                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
                                 <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-fuchsia-600/20 border border-fuchsia-500/40 flex items-center justify-center text-fuchsia-400 font-bold text-sm">
+                                    <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-sm">
                                         2
                                     </div>
                                     <div>
@@ -695,7 +696,7 @@ const scrollToSection = (id: string) => {
                                     <!-- Quick Radio Cards for Tier -->
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Kategori Tiket <span class="text-fuchsia-400">*</span>
+                                            Kategori Tiket <span class="text-amber-400">*</span>
                                         </label>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div
@@ -705,19 +706,19 @@ const scrollToSection = (id: string) => {
                                                 :class="[
                                                     'p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between',
                                                     form.ticket_tier === tier.id
-                                                        ? 'bg-fuchsia-950/40 border-fuchsia-500 ring-1 ring-fuchsia-500'
-                                                        : 'bg-slate-950/50 border-white/10 hover:border-white/20'
+                                                        ? 'bg-orange-950/40 border-amber-500 ring-1 ring-amber-500'
+                                                        : 'bg-black/50 border-white/10 hover:border-white/20'
                                                 ]"
                                             >
                                                 <div>
                                                     <span class="font-bold text-sm text-white block">{{ tier.name }}</span>
-                                                    <span class="text-xs text-fuchsia-400 font-semibold">{{ formatRupiah(tier.price) }}</span>
+                                                    <span class="text-xs text-amber-400 font-semibold">{{ formatRupiah(tier.price) }}</span>
                                                 </div>
                                                 <div
                                                     :class="[
                                                         'w-5 h-5 rounded-full border flex items-center justify-center text-xs',
                                                         form.ticket_tier === tier.id
-                                                            ? 'bg-fuchsia-500 border-fuchsia-500 text-white'
+                                                            ? 'bg-amber-500 border-amber-500 text-slate-950'
                                                             : 'border-slate-600'
                                                     ]"
                                                 >
@@ -730,10 +731,10 @@ const scrollToSection = (id: string) => {
                                     <!-- Quantity Stepper -->
                                     <div class="pt-2">
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Jumlah Tiket (Maksimal 4 Tiket per Transaksi) <span class="text-fuchsia-400">*</span>
+                                            Jumlah Tiket (Maksimal 4 Tiket per Transaksi) <span class="text-amber-400">*</span>
                                         </label>
                                         <div class="flex items-center gap-4">
-                                            <div class="inline-flex items-center rounded-2xl border border-white/15 bg-slate-950/80 p-1.5">
+                                            <div class="inline-flex items-center rounded-2xl border border-white/15 bg-black/80 p-1.5">
                                                 <button
                                                     type="button"
                                                     @click="form.quantity = Math.max(1, form.quantity - 1)"
@@ -773,16 +774,16 @@ const scrollToSection = (id: string) => {
                                             v-model="form.notes"
                                             rows="2"
                                             placeholder="Contoh: Kebutuhan kursi roda atau permintaan akses ramah difabel."
-                                            class="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-white/15 focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/20 text-white placeholder-slate-500 text-sm transition-all"
+                                            class="w-full px-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
                                         ></textarea>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Card 3: Metode Pembayaran -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-slate-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
+                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
                                 <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-sm">
+                                    <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 font-bold text-sm">
                                         3
                                     </div>
                                     <div>
@@ -799,13 +800,13 @@ const scrollToSection = (id: string) => {
                                         :class="[
                                             'p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between',
                                             form.payment_method === method.id
-                                                ? 'bg-cyan-950/30 border-cyan-400 ring-1 ring-cyan-400/50 shadow-md shadow-cyan-950/50'
-                                                : 'bg-slate-950/50 border-white/10 hover:border-white/20'
+                                                ? 'bg-orange-950/30 border-amber-400 ring-1 ring-amber-400/50 shadow-md shadow-orange-950/50'
+                                                : 'bg-black/50 border-white/10 hover:border-white/20'
                                         ]"
                                     >
                                         <div class="flex items-start justify-between mb-2">
                                             <span class="font-bold text-sm text-white">{{ method.name }}</span>
-                                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">
+                                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
                                                 {{ method.badge }}
                                             </span>
                                         </div>
@@ -820,13 +821,13 @@ const scrollToSection = (id: string) => {
 
                         <!-- RIGHT COLUMN: Order Summary & Checkout Action (5 cols) -->
                         <div class="lg:col-span-5 sticky top-28 space-y-6">
-                            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-950 border border-white/15 backdrop-blur-xl shadow-2xl">
+                            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-b from-stone-900/90 via-stone-900/80 to-black border border-white/15 backdrop-blur-xl shadow-2xl">
                                 <div class="flex items-center justify-between pb-4 border-b border-white/10">
                                     <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                        <Ticket class="w-5 h-5 text-fuchsia-400" />
+                                        <Ticket class="w-5 h-5 text-amber-400" />
                                         <span>Ringkasan Pesanan</span>
                                     </h3>
-                                    <span class="text-xs px-2.5 py-1 rounded-full bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30">
+                                    <span class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
                                         Phase 2
                                     </span>
                                 </div>
@@ -860,9 +861,9 @@ const scrollToSection = (id: string) => {
                                 <div class="mt-6 flex items-baseline justify-between">
                                     <div>
                                         <span class="text-xs uppercase tracking-wider text-slate-400 block font-bold">Total Pembayaran</span>
-                                        <span class="text-[11px] text-emerald-400">Termasuk pajak & biaya admin</span>
+                                        <span class="text-[11px] text-amber-400">Termasuk pajak & biaya admin</span>
                                     </div>
-                                    <div class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-violet-300 via-fuchsia-300 to-pink-300 bg-clip-text text-transparent">
+                                    <div class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 bg-clip-text text-transparent">
                                         {{ formatRupiah(totalPrice) }}
                                     </div>
                                 </div>
@@ -874,11 +875,11 @@ const scrollToSection = (id: string) => {
                                             type="checkbox"
                                             v-model="form.agree_terms"
                                             required
-                                            class="w-4 h-4 mt-0.5 rounded border-white/20 bg-slate-950 text-fuchsia-600 focus:ring-fuchsia-500 focus:ring-offset-0"
+                                            class="w-4 h-4 mt-0.5 rounded border-white/20 bg-black text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
                                         />
                                         <span class="text-xs text-slate-400 leading-snug">
                                             Saya menyatakan bahwa data yang diisi sudah benar dan menyetujui
-                                            <a href="#faq" class="text-fuchsia-400 hover:underline">Syarat & Ketentuan Konser</a>
+                                            <a href="#faq" class="text-amber-400 hover:underline">Syarat & Ketentuan Konser</a>
                                             serta kebijakan penukaran wristband.
                                         </span>
                                     </label>
@@ -891,17 +892,17 @@ const scrollToSection = (id: string) => {
                                 <button
                                     type="submit"
                                     :disabled="form.processing"
-                                    class="mt-6 w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 hover:from-violet-500 hover:via-fuchsia-500 hover:to-pink-500 disabled:opacity-50 text-white font-extrabold text-base tracking-wide shadow-xl shadow-fuchsia-600/30 hover:shadow-fuchsia-600/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+                                    class="mt-6 w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 disabled:opacity-50 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
                                 >
                                     <span v-if="form.processing" class="inline-flex items-center gap-2">
-                                        <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                                        <svg class="animate-spin h-5 w-5 text-slate-950" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                         </svg>
                                         Memproses Pendaftaran...
                                     </span>
                                     <span v-else class="inline-flex items-center gap-2">
-                                        <CheckCircle2 class="w-5 h-5" />
+                                        <CheckCircle2 class="w-5 h-5 text-slate-950" />
                                         Daftar & Konfirmasi Tiket
                                     </span>
                                 </button>
@@ -909,11 +910,11 @@ const scrollToSection = (id: string) => {
                                 <!-- Trust Badges -->
                                 <div class="mt-6 flex items-center justify-center gap-6 text-[11px] text-slate-400">
                                     <div class="flex items-center gap-1.5">
-                                        <ShieldCheck class="w-4 h-4 text-emerald-400" />
+                                        <ShieldCheck class="w-4 h-4 text-amber-400" />
                                         <span>100% Tiket Resmi</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
-                                        <QrCode class="w-4 h-4 text-cyan-400" />
+                                        <QrCode class="w-4 h-4 text-orange-400" />
                                         <span>E-Ticket QR Otomatis</span>
                                     </div>
                                 </div>
@@ -926,7 +927,7 @@ const scrollToSection = (id: string) => {
             <!-- FAQ SECTION -->
             <section id="faq" class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-violet-400">Pusat Bantuan</span>
+                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Pusat Bantuan</span>
                     <h2 class="text-3xl font-extrabold text-white mt-1">Pertanyaan Seputar Konser (FAQ)</h2>
                     <p class="text-sm text-slate-400 mt-2">Segala informasi penting yang wajib Anda ketahui sebelum hadir ke venue.</p>
                 </div>
@@ -935,12 +936,12 @@ const scrollToSection = (id: string) => {
                     <div
                         v-for="(faq, idx) in faqs"
                         :key="idx"
-                        class="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl overflow-hidden transition-colors"
+                        class="rounded-2xl border border-white/10 bg-stone-900/60 backdrop-blur-xl overflow-hidden transition-colors"
                     >
                         <button
                             type="button"
                             @click="toggleFaq(idx)"
-                            class="w-full p-5 text-left font-bold text-sm sm:text-base text-slate-100 flex items-center justify-between gap-4 hover:text-fuchsia-300 transition-colors"
+                            class="w-full p-5 text-left font-bold text-sm sm:text-base text-slate-100 flex items-center justify-between gap-4 hover:text-amber-300 transition-colors"
                         >
                             <span>{{ faq.q }}</span>
                             <span class="text-xs w-6 h-6 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
@@ -956,11 +957,11 @@ const scrollToSection = (id: string) => {
         </main>
 
         <!-- FOOTER -->
-        <footer class="border-t border-white/10 bg-[#05060d] py-12 text-slate-500 text-xs">
+        <footer class="border-t border-white/10 bg-[#070407] py-12 text-slate-500 text-xs">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
                 <div>
                     <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
-                        <Music class="w-4 h-4 text-fuchsia-400" />
+                        <Music class="w-4 h-4 text-amber-400" />
                         <span class="font-extrabold text-white tracking-wide">NEON ECHOES FESTIVAL 2025</span>
                     </div>
                     <p>© 2025 Promotor Musik Indonesia. Seluruh hak cipta dilindungi undang-undang.</p>
@@ -969,14 +970,14 @@ const scrollToSection = (id: string) => {
                     <a href="#kategori" class="hover:text-slate-300">Tiket</a>
                     <a href="#stage" class="hover:text-slate-300">Denah</a>
                     <a href="#faq" class="hover:text-slate-300">Ketentuan</a>
-                    <button @click="checkModalOpen = true" class="text-fuchsia-400 hover:underline">Cek E-Ticket</button>
+                    <button @click="checkModalOpen = true" class="text-amber-400 hover:underline">Cek E-Ticket</button>
                 </div>
             </div>
         </footer>
 
         <!-- MODAL: CEK STATUS TIKET -->
         <div v-if="checkModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div class="relative w-full max-w-md rounded-3xl bg-slate-900 border border-white/15 p-6 sm:p-8 shadow-2xl">
+            <div class="relative w-full max-w-md rounded-3xl bg-stone-900 border border-white/15 p-6 sm:p-8 shadow-2xl">
                 <button
                     @click="checkModalOpen = false; searchError = ''"
                     class="absolute top-5 right-5 text-slate-400 hover:text-white"
@@ -985,7 +986,7 @@ const scrollToSection = (id: string) => {
                 </button>
 
                 <div class="text-center mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center mx-auto mb-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto mb-3">
                         <Search class="w-6 h-6" />
                     </div>
                     <h3 class="text-xl font-extrabold text-white">Cari E-Ticket Anda</h3>
@@ -1001,7 +1002,7 @@ const scrollToSection = (id: string) => {
                             type="text"
                             placeholder="Kode Booking / NIK / Email"
                             required
-                            class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-white/15 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-white placeholder-slate-500 text-sm"
+                            class="w-full px-4 py-3 rounded-xl bg-black border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm"
                         />
                     </div>
 
@@ -1013,7 +1014,7 @@ const scrollToSection = (id: string) => {
                     <button
                         type="submit"
                         :disabled="isSearching"
-                        class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+                        class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 disabled:opacity-50 text-slate-950 font-black text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25"
                     >
                         <span v-if="isSearching">Mencari Tiket...</span>
                         <span v-else>Cari E-Ticket</span>
@@ -1024,7 +1025,7 @@ const scrollToSection = (id: string) => {
 
         <!-- MODAL: E-TICKET RECEIPT DISPLAY -->
         <div v-if="isReceiptModalOpen && activeTicket" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-            <div class="relative w-full max-w-lg my-8 rounded-3xl bg-slate-900 border border-fuchsia-500/40 p-6 sm:p-8 shadow-2xl shadow-fuchsia-950/60 print:m-0 print:border-none print:shadow-none print:bg-white print:text-black">
+            <div class="relative w-full max-w-lg my-8 rounded-3xl bg-[#140d12] border border-amber-500/40 p-6 sm:p-8 shadow-2xl shadow-orange-950/70 print:m-0 print:border-none print:shadow-none print:bg-white print:text-black">
                 <!-- Close Button (Hidden on Print) -->
                 <button
                     @click="closeReceipt"
@@ -1035,7 +1036,7 @@ const scrollToSection = (id: string) => {
 
                 <!-- Ticket Header -->
                 <div class="text-center pb-6 border-b border-white/10 print:border-slate-300">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2 print:border-emerald-600 print:text-emerald-700">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 print:border-amber-600 print:text-amber-700">
                         <CheckCircle2 class="w-3.5 h-3.5" /> E-TICKET RESMI TERKONFIRMASI
                     </span>
                     <h3 class="text-2xl font-black text-white print:text-black">{{ event.title }}</h3>
@@ -1045,12 +1046,12 @@ const scrollToSection = (id: string) => {
                 </div>
 
                 <!-- Booking Code Box -->
-                <div class="my-6 p-4 rounded-2xl bg-slate-950/80 border border-dashed border-fuchsia-500/40 text-center print:bg-slate-100 print:border-slate-400">
+                <div class="my-6 p-4 rounded-2xl bg-black/80 border border-dashed border-amber-500/40 text-center print:bg-slate-100 print:border-slate-400">
                     <span class="text-[11px] uppercase tracking-widest text-slate-400 print:text-slate-600 font-bold block">
                         KODE BOOKING TIKET
                     </span>
                     <div class="flex items-center justify-center gap-3 mt-1">
-                        <span class="text-2xl sm:text-3xl font-black tracking-widest text-fuchsia-400 print:text-fuchsia-700">
+                        <span class="text-2xl sm:text-3xl font-black tracking-widest text-amber-400 print:text-amber-700">
                             {{ activeTicket.booking_code }}
                         </span>
                         <button
@@ -1063,7 +1064,7 @@ const scrollToSection = (id: string) => {
                             <Copy v-else class="w-4 h-4" />
                         </button>
                     </div>
-                    <span v-if="isCopied" class="text-[11px] text-emerald-400 mt-1 block">Kode booking disalin ke clipboard!</span>
+                    <span v-if="isCopied" class="text-[11px] text-amber-400 mt-1 block">Kode booking disalin ke clipboard!</span>
                 </div>
 
                 <!-- Mock QR Code Barcode -->
@@ -1130,7 +1131,7 @@ const scrollToSection = (id: string) => {
                     </div>
                     <div class="flex justify-between">
                         <span class="text-slate-400 print:text-slate-600">Kategori Tiket:</span>
-                        <span class="font-extrabold uppercase text-fuchsia-400 print:text-fuchsia-700">
+                        <span class="font-extrabold uppercase text-amber-400 print:text-amber-700">
                             {{ activeTicket.ticket_tier }} ({{ activeTicket.quantity }} Tiket)
                         </span>
                     </div>
@@ -1140,7 +1141,7 @@ const scrollToSection = (id: string) => {
                     </div>
                     <div class="flex justify-between pt-2 border-t border-white/10 print:border-slate-300">
                         <span class="text-slate-400 print:text-slate-600 font-bold">Total Pembayaran:</span>
-                        <span class="font-black text-sm text-emerald-400 print:text-emerald-700">
+                        <span class="font-black text-sm text-amber-400 print:text-amber-700">
                             {{ formatRupiah(activeTicket.total_price) }}
                         </span>
                     </div>
@@ -1158,7 +1159,7 @@ const scrollToSection = (id: string) => {
                     <button
                         type="button"
                         @click="closeReceipt"
-                        class="flex-1 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-lg shadow-fuchsia-600/30"
+                        class="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-lg shadow-orange-500/25"
                     >
                         Selesai
                     </button>
