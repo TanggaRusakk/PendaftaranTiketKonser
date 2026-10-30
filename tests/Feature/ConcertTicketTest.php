@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ConcertTicket as ConcertTicketMail;
 use App\Models\ConcertTicket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ConcertTicketTest extends TestCase
@@ -24,6 +26,8 @@ class ConcertTicketTest extends TestCase
 
     public function test_user_can_register_concert_ticket(): void
     {
+        Mail::fake();
+
         $payload = [
             'full_name' => 'Budi Santoso',
             'email' => 'budi.santoso@example.com',
@@ -41,6 +45,11 @@ class ConcertTicketTest extends TestCase
         $response->assertRedirect('/');
         $response->assertSessionHas('success');
         $response->assertSessionHas('recent_ticket_code');
+
+        Mail::assertSent(ConcertTicketMail::class, function ($mail) {
+            return $mail->hasTo('budi.santoso@example.com')
+                && $mail->user_name === 'Budi Santoso';
+        });
 
         $this->assertDatabaseHas('concert_tickets', [
             'full_name' => 'Budi Santoso',
@@ -103,5 +112,33 @@ class ConcertTicketTest extends TestCase
                 'full_name' => 'Citra Lestari',
             ],
         ]);
+    }
+
+    public function test_mailable_can_be_rendered(): void
+    {
+        $ticket = new ConcertTicket([
+            'booking_code' => 'NEON-2025-MAIL1',
+            'full_name' => 'Raditya Danendra',
+            'email' => 'raditya@example.com',
+            'phone' => '081234567890',
+            'identity_number' => '3171012345670001',
+            'ticket_tier' => 'vip',
+            'ticket_price' => 1750000,
+            'quantity' => 2,
+            'subtotal' => 3500000,
+            'tax_amount' => 350000,
+            'admin_fee' => 5000,
+            'total_price' => 3855000,
+            'payment_method' => 'qris',
+            'status' => 'CONFIRMED',
+        ]);
+
+        $mailable = new ConcertTicketMail('raditya@example.com', 'Raditya Danendra', $ticket);
+
+        $html = $mailable->render();
+
+        $this->assertStringContainsString('Raditya Danendra', $html);
+        $this->assertStringContainsString('NEON-2025-MAIL1', $html);
+        $this->assertStringContainsString('Rp 3.855.000', $html);
     }
 }

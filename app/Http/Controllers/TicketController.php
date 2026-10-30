@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ConcertTicket as ConcertTicketMail;
 use App\Models\ConcertTicket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -207,8 +210,22 @@ class TicketController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
+        // Kirim E-Ticket ke email pemesan
+        try {
+            Mail::to($ticket->email)->send(
+                new ConcertTicketMail(
+                    user_email: $ticket->email,
+                    user_name: $ticket->full_name,
+                    ticket: $ticket,
+                    eventData: $this->getEventData()
+                )
+            );
+        } catch (\Throwable $e) {
+            Log::error('Gagal mengirim e-ticket ke email pemesan: ' . $e->getMessage());
+        }
+
         return redirect()->route('home')
-            ->with('success', 'Pendaftaran tiket konser berhasil! E-Ticket dan kode booking Anda telah diterbitkan.')
+            ->with('success', 'Pendaftaran tiket konser berhasil! E-Ticket dan kode booking telah diterbitkan dan dikirimkan ke email ' . $ticket->email . '.')
             ->with('recent_ticket_code', $ticket->booking_code);
     }
 
