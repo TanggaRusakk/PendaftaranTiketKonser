@@ -114,6 +114,35 @@ class ConcertTicketTest extends TestCase
         ]);
     }
 
+    public function test_ticket_detail_page_can_be_rendered_from_booking_code(): void
+    {
+        $ticket = ConcertTicket::create([
+            'booking_code' => 'NEON-2027-DETAIL',
+            'full_name' => 'Dina Pratama',
+            'email' => 'dina@example.com',
+            'phone' => '081298765432',
+            'identity_number' => '3171012345670002',
+            'ticket_tier' => 'festival',
+            'ticket_price' => 950000,
+            'quantity' => 1,
+            'subtotal' => 950000,
+            'tax_amount' => 95000,
+            'admin_fee' => 5000,
+            'total_price' => 1050000,
+            'payment_method' => 'qris',
+            'status' => 'CONFIRMED',
+        ]);
+
+        $response = $this->get(route('ticket.show', ['bookingCode' => $ticket->booking_code]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('TicketDetails')
+            ->where('ticket.booking_code', 'NEON-2027-DETAIL')
+            ->where('ticket.full_name', 'Dina Pratama')
+        );
+    }
+
     public function test_mailable_can_be_rendered(): void
     {
         $ticket = new ConcertTicket([

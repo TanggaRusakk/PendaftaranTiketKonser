@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Symfony\Component\Process\Process;
 
 class ConcertTicket extends Mailable
 {
@@ -41,7 +42,7 @@ class ConcertTicket extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🎟️ Konfirmasi E-Ticket Konser - NEON ECHOES FESTIVAL 2025',
+            subject: '🎟️ Konfirmasi E-Ticket Konser - NEON ECHOES FESTIVAL 2026',
             from: config('mail.from.address', env('MAIL_FROM_ADDRESS')),
             to: $this->user_email,
         );
@@ -53,14 +54,27 @@ class ConcertTicket extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail-template.registration-successful',
-            with: [
-                'user_name' => $this->user_name,
-                'user_email' => $this->user_email,
-                'ticket' => $this->ticket,
-                'eventData' => $this->eventData,
-            ],
+            htmlString: $this->renderVueTemplate(),
         );
+    }
+
+    private function renderVueTemplate(): string
+    {
+        $process = new Process(
+            ['node', base_path('resources/js/email/render-email.mjs')],
+            base_path(),
+            null,
+            json_encode([
+                'userName' => $this->user_name,
+                'userEmail' => $this->user_email,
+                'ticket' => $this->ticket?->toArray(),
+                'eventData' => $this->eventData,
+                'portalUrl' => route('ticket.show', ['bookingCode' => $this->ticket?->booking_code]),
+            ], JSON_THROW_ON_ERROR),
+        );
+        $process->mustRun();
+
+        return $process->getOutput();
     }
 
     /**

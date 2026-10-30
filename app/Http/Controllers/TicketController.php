@@ -15,9 +15,9 @@ class TicketController extends Controller
     private function getEventData(): array
     {
         return [
-            'title' => 'NEON ECHOES FESTIVAL 2025',
+            'title' => 'NEON ECHOES FESTIVAL 2026',
             'tagline' => 'The Biggest Symphony & Indie Live Music Spectacle',
-            'date' => 'Sabtu, 28 Juni 2025',
+            'date' => 'Senin, 28 Juni 2027',
             'time' => '16:00 - 23:30 WIB (Gate Open: 14:30 WIB)',
             'venue' => 'Stadion Utama Gelora Bung Karno (GBK), Senayan, Jakarta',
             'artists' => [
@@ -255,6 +255,16 @@ class TicketController extends Controller
 
         return response()->json([
             'success' => true,
+            'ticket' => $ticket,
+        ]);
+    }
+
+    public function show(string $bookingCode)
+    {
+        $ticket = ConcertTicket::where('booking_code', strtoupper($bookingCode))->firstOrFail();
+
+        return Inertia::render('TicketDetails', [
+            'event' => $this->getEventData(),
             'ticket' => $ticket,
         ]);
     }

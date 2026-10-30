@@ -1,30 +1,6 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
-import {
-    AlertCircle,
-    Calendar,
-    Check,
-    CheckCircle2,
-    Clock,
-    Copy,
-    CreditCard,
-    Flame,
-    HelpCircle,
-    IdCard,
-    Info,
-    Mail,
-    MapPin,
-    Music,
-    Phone,
-    Printer,
-    QrCode,
-    Search,
-    ShieldCheck,
-    Sparkles,
-    Ticket,
-    User,
-    X,
-} from 'lucide-vue-next';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, Clock3, Copy, Menu, Search, ShieldCheck, Ticket, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface TicketTier {
@@ -57,7 +33,6 @@ interface EventData {
 }
 
 interface BookedTicket {
-    id: number;
     booking_code: string;
     full_name: string;
     email: string;
@@ -72,21 +47,15 @@ interface BookedTicket {
     total_price: number;
     payment_method: string;
     status: string;
-    notes?: string;
-    created_at?: string;
 }
 
 const props = defineProps<{
     event: EventData;
     totalBookedCount: number;
     recentTicket?: BookedTicket | null;
-    flash?: {
-        success?: string;
-        error?: string;
-    };
+    flash?: { success?: string; error?: string };
 }>();
 
-// Form Registration state
 const form = useForm({
     full_name: '',
     email: '',
@@ -99,1081 +68,478 @@ const form = useForm({
     agree_terms: false,
 });
 
-// Selected Tier computed
-const selectedTier = computed(() => {
-    return props.event.tiers.find((t) => t.id === form.ticket_tier) || props.event.tiers[0];
-});
-
-// Calculation computed
-const unitPrice = computed(() => selectedTier.value?.price || 0);
-const subtotal = computed(() => unitPrice.value * form.quantity);
+const selectedTier = computed(() => props.event.tiers.find((tier) => tier.id === form.ticket_tier) ?? props.event.tiers[0]);
+const subtotal = computed(() => (selectedTier.value?.price ?? 0) * form.quantity);
 const taxAmount = computed(() => Math.round(subtotal.value * 0.1));
-const adminFee = 5000;
-const totalPrice = computed(() => subtotal.value + taxAmount.value + adminFee);
+const totalPrice = computed(() => subtotal.value + taxAmount.value + 5000);
+const formatRupiah = (value: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
-// Formatter for Rupiah
-const formatRupiah = (val: number) => {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        maximumFractionDigits: 0,
-    }).format(val);
+const activeTicket = ref<BookedTicket | null>(props.recentTicket ?? null);
+const receiptOpen = ref(Boolean(props.recentTicket));
+const copied = ref(false);
+const checkOpen = ref(false);
+const searchQuery = ref('');
+const searchError = ref('');
+const searching = ref(false);
+const menuOpen = ref(false);
+const openFaq = ref<number | null>(0);
+
+const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    menuOpen.value = false;
 };
-
-// Modal Receipt / E-Ticket State
-const activeTicket = ref<BookedTicket | null>(props.recentTicket || null);
-const isReceiptModalOpen = ref(!!props.recentTicket);
-const isCopied = ref(false);
 
 const openReceipt = (ticket: BookedTicket) => {
     activeTicket.value = ticket;
-    isReceiptModalOpen.value = true;
+    receiptOpen.value = true;
 };
 
-const closeReceipt = () => {
-    isReceiptModalOpen.value = false;
+const copyCode = async () => {
+    if (!activeTicket.value) return;
+    await navigator.clipboard.writeText(activeTicket.value.booking_code);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1800);
 };
 
-const copyBookingCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    isCopied.value = true;
-    setTimeout(() => {
-        isCopied.value = false;
-    }, 2000);
-};
-
-const printTicket = () => {
-    window.print();
-};
-
-// Search / Check Ticket state
-const searchQuery = ref('');
-const isSearching = ref(false);
-const searchError = ref('');
-const checkModalOpen = ref(false);
-
-const searchTicket = async () => {
-    if (!searchQuery.value.trim()) {
-        searchError.value = 'Silakan masukkan Kode Booking, Email, atau NIK.';
-        return;
-    }
-    isSearching.value = true;
-    searchError.value = '';
-
-    try {
-        const response = await fetch(`/ticket/check?search=${encodeURIComponent(searchQuery.value.trim())}`);
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            checkModalOpen.value = false;
-            openReceipt(data.ticket);
-            searchQuery.value = '';
-        } else {
-            searchError.value = data.message || 'Tiket tidak ditemukan. Periksa kembali data Anda.';
-        }
-    } catch {
-        searchError.value = 'Terjadi kesalahan saat memeriksa tiket. Coba beberapa saat lagi.';
-    } finally {
-        isSearching.value = false;
-    }
-};
-
-// Submit handler
 const submitForm = () => {
     form.post('/ticket/register', {
         preserveScroll: true,
         onSuccess: (page) => {
-            const returnedTicket = (page.props as any).recentTicket;
-            if (returnedTicket) {
-                openReceipt(returnedTicket);
-            }
+            const ticket = (page.props as { recentTicket?: BookedTicket }).recentTicket;
+            if (ticket) openReceipt(ticket);
             form.reset('full_name', 'email', 'phone', 'identity_number', 'notes', 'agree_terms');
             form.quantity = 1;
         },
     });
 };
 
-// FAQ accordion state
-const openFaq = ref<number | null>(0);
-const toggleFaq = (index: number) => {
-    openFaq.value = openFaq.value === index ? null : index;
+const searchTicket = async () => {
+    if (!searchQuery.value.trim()) {
+        searchError.value = 'Masukkan kode booking, email, atau NIK.';
+        return;
+    }
+    searching.value = true;
+    searchError.value = '';
+    try {
+        const response = await fetch(`/ticket/check?search=${encodeURIComponent(searchQuery.value.trim())}`);
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            searchError.value = data.message ?? 'Tiket tidak ditemukan.';
+            return;
+        }
+        checkOpen.value = false;
+        searchQuery.value = '';
+        router.visit(`/ticket/${encodeURIComponent(data.ticket.booking_code)}`);
+    } catch {
+        searchError.value = 'Terjadi kesalahan. Silakan coba lagi.';
+    } finally {
+        searching.value = false;
+    }
 };
 
 const faqs = [
-    {
-        q: 'Bagaimana cara menukarkan E-Ticket menjadi Wristband fisik?',
-        a: 'Penukaran wristband dapat dilakukan H-2 hingga hari H konser di Ticket Booth Stadion Utama GBK dengan menunjukkan E-Ticket (QR Code) dan KTP/kartu identitas asli sesuai data pemesan.',
-    },
-    {
-        q: 'Apakah satu identitas bisa membeli lebih dari satu tiket?',
-        a: 'Ya, Anda dapat membeli hingga maksimal 4 tiket dalam satu kali transaksi. Pastikan nama pemesan utama sesuai dengan KTP yang digunakan saat registrasi.',
-    },
-    {
-        q: 'Apakah tiket yang sudah dibeli dapat dibatalkan atau di-refund?',
-        a: 'Tiket yang telah dibeli bersifat final dan tidak dapat di-refund, kecuali acara dibatalkan secara sepihak oleh penyelenggara sesuai syarat & ketentuan resmi.',
-    },
-    {
-        q: 'Berapa batasan usia minimal penonton konser ini?',
-        a: 'Penonton minimal berusia 12 tahun. Penonton di bawah 17 tahun wajib didampingi oleh orang tua atau wali dewasa yang juga memiliki tiket resmi.',
-    },
+    [
+        'Bagaimana cara menukarkan e-ticket?',
+        'Tunjukkan e-ticket dan kartu identitas asli di Ticket Booth Stadion Utama GBK mulai H-2 hingga hari H konser.',
+    ],
+    [
+        'Berapa tiket yang dapat dibeli dalam satu transaksi?',
+        'Maksimal empat tiket untuk satu transaksi. Nama pemesan utama harus sesuai dengan kartu identitas.',
+    ],
+    [
+        'Apakah tiket dapat dibatalkan?',
+        'Tiket yang sudah dibeli bersifat final dan tidak dapat di-refund, kecuali acara dibatalkan oleh penyelenggara.',
+    ],
+    ['Berapa usia minimal penonton?', 'Penonton minimal berusia 12 tahun. Penonton di bawah 17 tahun wajib didampingi orang tua atau wali.'],
 ];
-
-const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-    }
-};
 </script>
 
 <template>
-    <Head :title="event.title + ' - Pendaftaran Tiket Konser'">
+    <Head :title="`${event.title} - Pendaftaran Tiket Konser`">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+            rel="stylesheet"
+        />
     </Head>
 
-    <!-- Sunset Horizon Palette: Warm Amber, Golden Orange, Crimson Rose, Dark Velvet Base -->
-    <div class="min-h-screen bg-[#0c070c] text-slate-100 selection:bg-amber-500 selection:text-slate-950" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-        <!-- Ambient Glowing Background Elements (Warm Sunset Gradients) -->
-        <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-            <div class="absolute -top-[15%] -left-[10%] w-[650px] h-[650px] rounded-full bg-amber-500/20 blur-[130px]"></div>
-            <div class="absolute top-[20%] -right-[15%] w-[620px] h-[620px] rounded-full bg-orange-600/20 blur-[140px]"></div>
-            <div class="absolute -bottom-[10%] left-[25%] w-[700px] h-[700px] rounded-full bg-rose-600/15 blur-[150px]"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px]"></div>
-        </div>
-
-        <!-- Sticky Header / Navigation -->
-        <header class="sticky top-0 z-40 border-b border-white/10 bg-[#0c070c]/85 backdrop-blur-xl">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 p-0.5 shadow-lg shadow-orange-500/25">
-                        <div class="w-full h-full bg-[#0c070c] rounded-[14px] flex items-center justify-center">
-                            <Music class="w-5 h-5 text-amber-400 animate-pulse" />
-                        </div>
-                    </div>
-                    <div>
-                        <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 bg-clip-text text-transparent">
-                            NEON ECHOES
-                        </span>
-                        <span class="block text-[10px] tracking-widest uppercase text-amber-400 font-semibold">Sunset Horizon Tour 2025</span>
-                    </div>
-                </div>
-
-                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-                    <button @click="scrollToSection('lineup')" class="hover:text-amber-400 transition-colors">Lineup Artis</button>
-                    <button @click="scrollToSection('kategori')" class="hover:text-amber-400 transition-colors">Kategori & Harga</button>
-                    <button @click="scrollToSection('stage')" class="hover:text-amber-400 transition-colors">Denah Panggung</button>
-                    <button @click="scrollToSection('form-order')" class="hover:text-amber-400 transition-colors">Pesan Tiket</button>
-                    <button @click="scrollToSection('faq')" class="hover:text-amber-400 transition-colors">FAQ</button>
-                </nav>
-
-                <div class="flex items-center gap-3">
-                    <button
-                        @click="checkModalOpen = true"
-                        class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-200 transition-all flex items-center gap-2 shadow-sm"
+    <div class="min-h-screen bg-[#fffaf6] text-[#302d3d] selection:bg-[#d9c7eb] selection:text-[#302d3d]" style="font-family: 'DM Sans', sans-serif">
+        <header class="sticky top-0 z-30 border-b border-[#e9dfdb] bg-[#fffaf6]/95 backdrop-blur">
+            <div class="mx-auto flex h-[76px] max-w-6xl items-center justify-between gap-3 px-4 sm:px-5 lg:px-8">
+                <button class="flex items-center gap-3 text-left" @click="scrollTo('top')">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#cdb7e5] text-[#49365d]"><Ticket class="h-5 w-5" /></span>
+                    <span class="min-w-0"
+                        ><strong
+                            class="block truncate font-serif text-base leading-none text-[#49365d] sm:text-lg"
+                            style="font-family: 'Playfair Display', serif"
+                            >Neon Echoes</strong
+                        ><small class="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#a06c78] sm:text-[10px] sm:tracking-[0.18em]"
+                            >Festival 2026</small
+                        ></span
                     >
-                        <Search class="w-4 h-4 text-amber-400" />
-                        <span>Cek E-Ticket</span>
+                </button>
+                <nav class="hidden items-center gap-7 text-sm font-semibold text-[#6e6878] md:flex">
+                    <button @click="scrollTo('lineup')">Lineup</button><button @click="scrollTo('tickets')">Tiket</button
+                    ><button @click="scrollTo('order')">Pesan</button><button @click="scrollTo('faq')">FAQ</button>
+                </nav>
+                <div class="flex items-center gap-2">
+                    <button
+                        class="hidden rounded-full border border-[#d9c8c0] px-4 py-2 text-sm font-semibold text-[#6e6878] transition hover:border-[#a06c78] hover:text-[#a06c78] sm:block"
+                        @click="checkOpen = true"
+                    >
+                        <Search class="mr-1 inline h-4 w-4" /> Cek tiket
                     </button>
                     <button
-                        @click="scrollToSection('form-order')"
-                        class="hidden sm:inline-flex px-5 py-2 text-xs sm:text-sm font-black rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 text-slate-950 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all transform active:scale-95"
+                        class="rounded-full bg-[#a06c78] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#855968]"
+                        @click="scrollTo('order')"
                     >
-                        Beli Tiket
+                        Beli tiket
+                    </button>
+                    <button class="rounded-lg p-2 md:hidden" @click="menuOpen = !menuOpen"><Menu class="h-5 w-5" /></button>
+                </div>
+            </div>
+            <div v-if="menuOpen" class="border-t border-[#e9dfdb] bg-[#fffaf6] px-5 py-4 md:hidden">
+                <div class="flex flex-col gap-4 text-sm font-semibold">
+                    <button class="text-left" @click="scrollTo('lineup')">Lineup</button
+                    ><button class="text-left" @click="scrollTo('tickets')">Tiket</button
+                    ><button class="text-left" @click="scrollTo('order')">Pesan tiket</button
+                    ><button class="text-left" @click="scrollTo('faq')">FAQ</button
+                    ><button
+                        class="text-left text-[#a06c78]"
+                        @click="
+                            checkOpen = true;
+                            menuOpen = false;
+                        "
+                    >
+                        Cek e-ticket
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- Flash Success Notification if any -->
-        <div v-if="props.flash?.success && !isReceiptModalOpen" class="relative z-30 max-w-4xl mx-auto px-4 mt-6">
-            <div class="p-4 rounded-2xl bg-amber-950/80 border border-amber-500/50 backdrop-blur-md flex items-center justify-between gap-4 text-amber-200 shadow-xl shadow-amber-950/50">
-                <div class="flex items-center gap-3">
-                    <CheckCircle2 class="w-6 h-6 text-amber-400 flex-shrink-0" />
-                    <div>
-                        <p class="font-bold text-amber-100">Registrasi Berhasil!</p>
-                        <p class="text-xs text-amber-300">{{ props.flash.success }}</p>
-                    </div>
-                </div>
-                <button
-                    v-if="props.recentTicket"
-                    @click="openReceipt(props.recentTicket)"
-                    class="px-4 py-1.5 text-xs font-black rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 transition-colors"
-                >
-                    Lihat E-Ticket
-                </button>
-            </div>
+        <div
+            v-if="flash?.success && !receiptOpen"
+            class="mx-auto mt-5 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#b9d8c8] bg-[#edf8f1] px-5 py-4 text-sm text-[#35644c]"
+        >
+            <span><CheckCircle2 class="mr-2 inline h-5 w-5" />{{ flash.success }}</span
+            ><button v-if="recentTicket" class="font-bold underline" @click="openReceipt(recentTicket)">Lihat e-ticket</button>
         </div>
 
-        <main class="relative z-10">
-            <!-- HERO SECTION -->
-            <section class="pt-12 pb-16 lg:pt-20 lg:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 bg-amber-950/40 backdrop-blur-md mb-8">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                    <span class="text-xs font-semibold tracking-wide text-amber-300">SUNSET PRESALE PHASE 2 • TIKET TERBATAS</span>
-                </div>
-
-                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight max-w-5xl mx-auto">
-                    RASAKAN ENERGI SPEKTAKULER DI <br />
-                    <span class="bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 bg-clip-text text-transparent drop-shadow-sm">
-                        {{ event.title }}
-                    </span>
-                </h1>
-
-                <p class="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl mx-auto font-normal leading-relaxed">
-                    {{ event.tagline }}. Bergabunglah bersama puluhan ribu penikmat musik di bawah gemerlap langit senja Jakarta!
-                </p>
-
-                <!-- Event Meta Pills -->
-                <div class="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
-                    <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <Calendar class="w-4 h-4 text-amber-400" />
-                        <span>{{ event.date }}</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <Clock class="w-4 h-4 text-orange-400" />
-                        <span>{{ event.time }}</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                        <MapPin class="w-4 h-4 text-rose-400" />
-                        <span>{{ event.venue }}</span>
-                    </div>
-                </div>
-
-                <!-- Live Booking Counter Badge -->
-                <div class="mt-10 flex items-center justify-center gap-3">
-                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-950/60 to-rose-950/60 border border-orange-500/30 text-xs sm:text-sm font-medium text-slate-300">
-                        <Flame class="w-5 h-5 text-amber-400 animate-bounce" />
-                        <span><strong class="text-white font-extrabold">{{ totalBookedCount }}+</strong> Tiket Terverifikasi • Kuota VIP Menipis Cepat!</span>
-                    </div>
-                </div>
-
-                <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-                    <button
-                        @click="scrollToSection('form-order')"
-                        class="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 transition-all flex items-center gap-3"
+        <main id="top">
+            <section class="mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-16 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:px-8 lg:pt-24">
+                <div>
+                    <p class="mb-5 inline-flex rounded-full bg-[#f7dfd8] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#a05d61]">
+                        28 Juni 2027 · GBK Jakarta
+                    </p>
+                    <h1
+                        class="max-w-3xl font-serif text-5xl leading-[1.05] text-[#49365d] sm:text-7xl"
+                        style="font-family: 'Playfair Display', serif"
                     >
-                        <Ticket class="w-5 h-5 text-slate-950" />
-                        <span>Pesan Tiket Sekarang</span>
-                    </button>
-                    <button
-                        @click="scrollToSection('kategori')"
-                        class="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/15 text-white font-semibold text-base transition-all hover:-translate-y-0.5"
-                    >
-                        Lihat Kategori Tiket
-                    </button>
+                        Satu malam, <span class="text-[#a06c78]">banyak cerita.</span>
+                    </h1>
+                    <p class="mt-6 max-w-xl text-lg leading-8 text-[#716a78]">
+                        {{ event.tagline }}. Nikmati musik yang dekat, hangat, dan terasa nyata.
+                    </p>
+                    <div class="mt-8 flex flex-wrap gap-3 text-sm font-semibold text-[#665e70]">
+                        <span class="rounded-xl bg-[#e7f2eb] px-4 py-3"
+                            ><CalendarDays class="mr-2 inline h-4 w-4 text-[#5b9375]" />{{ event.date }}</span
+                        ><span class="rounded-xl bg-[#eee8f5] px-4 py-3"><Clock3 class="mr-2 inline h-4 w-4 text-[#80629a]" />{{ event.time }}</span>
+                    </div>
+                    <div class="mt-9 flex flex-wrap items-center gap-4">
+                        <button
+                            class="rounded-full bg-[#a06c78] px-6 py-3.5 font-bold text-white transition hover:bg-[#855968]"
+                            @click="scrollTo('order')"
+                        >
+                            Pesan tiket <ArrowRight class="ml-2 inline h-4 w-4" /></button
+                        ><button class="font-bold text-[#a06c78] underline decoration-[#d9c7c0] underline-offset-4" @click="scrollTo('lineup')">
+                            Lihat lineup
+                        </button>
+                    </div>
+                </div>
+                <div class="relative rounded-[30px] border border-[#e3d3cc] bg-[#f8e9df] p-5 shadow-[10px_12px_0_#ead8d0]">
+                    <div class="rounded-[22px] border border-[#ead4c8] bg-[#fffaf6] p-7">
+                        <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#a06c78]">The live music experience</p>
+                        <div class="mt-12 flex items-end gap-2">
+                            <span class="h-28 w-5 rounded-t-full bg-[#cdb7e5]"></span><span class="h-44 w-5 rounded-t-full bg-[#b9d8c8]"></span
+                            ><span class="h-36 w-5 rounded-t-full bg-[#f4c9bd]"></span><span class="h-56 w-5 rounded-t-full bg-[#a06c78]"></span
+                            ><span class="h-40 w-5 rounded-t-full bg-[#d8c7e9]"></span>
+                        </div>
+                        <div class="mt-8 border-t border-[#e9dfdb] pt-5">
+                            <p class="font-serif text-2xl text-[#49365d]" style="font-family: 'Playfair Display', serif">
+                                Music feels better together.
+                            </p>
+                            <p class="mt-2 text-sm text-[#817783]">
+                                Tiket terverifikasi: <strong class="text-[#a06c78]">{{ totalBookedCount }}+</strong>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- GUEST STARS / LINEUP MARQUEE -->
-            <section id="lineup" class="py-12 border-y border-white/10 bg-black/40 backdrop-blur-md">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="text-center mb-8">
-                        <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Exclusive Lineup</span>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Bintang Tamu Utama</h2>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <section id="lineup" class="border-y border-[#e9dfdb] bg-[#f7f1ee]">
+                <div class="mx-auto max-w-6xl px-5 py-16 lg:px-8">
+                    <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#a06c78]">Lineup pilihan</p>
+                    <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                         <div
                             v-for="(artist, index) in event.artists"
-                            :key="index"
-                            class="group relative rounded-2xl p-5 bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 hover:border-amber-500/50 transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 hover:-translate-y-1"
+                            :key="artist"
+                            class="rounded-2xl border border-[#e3d7d2] bg-[#fffaf6] p-4"
+                            :class="{ 'bg-[#eee8f5]': index % 3 === 1, 'bg-[#e7f2eb]': index % 3 === 2 }"
                         >
-                            <div class="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-orange-500/25 group-hover:text-orange-300 transition-all">
-                                <Sparkles class="w-5 h-5" />
-                            </div>
-                            <span class="font-bold text-sm sm:text-base text-slate-100 group-hover:text-amber-300 transition-colors">
-                                {{ artist }}
-                            </span>
-                            <span class="text-[11px] text-slate-400 font-medium">Live Sunset Show</span>
+                            <span class="text-xs text-[#9b9098]">0{{ index + 1 }}</span>
+                            <p class="mt-7 font-semibold text-[#49365d]">{{ artist }}</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TICKET TIERS SELECTION -->
-            <section id="kategori" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-3xl mx-auto mb-16">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Tier Selection</span>
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Pilih Kategori Tiket Konser</h2>
-                    <p class="mt-4 text-slate-400 text-sm sm:text-base">
-                        Semua tiket sudah termasuk akses arena, wristband resmi konser, dan fasilitas standar keselamatan internasional.
+            <section id="tickets" class="mx-auto max-w-6xl px-5 py-20 lg:px-8">
+                <div class="flex flex-wrap items-end justify-between gap-5">
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#a06c78]">Pilih tempatmu</p>
+                        <h2 class="mt-2 font-serif text-4xl text-[#49365d]" style="font-family: 'Playfair Display', serif">Kategori tiket</h2>
+                    </div>
+                    <p class="max-w-xs text-sm leading-6 text-[#817783]">
+                        Semua tiket sudah termasuk akses masuk resmi dan e-ticket yang dikirim ke email.
                     </p>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div
+                <div class="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                    <article
                         v-for="tier in event.tiers"
                         :key="tier.id"
-                        @click="form.ticket_tier = tier.id; scrollToSection('form-order')"
-                        :class="[
-                            'relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer transition-all duration-300 border',
+                        class="flex flex-col rounded-2xl border p-5 transition"
+                        :class="
                             form.ticket_tier === tier.id
-                                ? 'bg-gradient-to-b from-orange-950/70 via-stone-900/90 to-black border-amber-500 ring-2 ring-amber-500/50 shadow-2xl shadow-orange-950/80 transform -translate-y-2'
-                                : 'bg-stone-900/40 hover:bg-stone-900/70 border-white/10 hover:border-amber-500/30 hover:-translate-y-1'
-                        ]"
+                                ? 'border-[#a06c78] bg-[#fff3ef] shadow-[4px_5px_0_#e5c7bf]'
+                                : 'border-[#e5dcd7] bg-white hover:border-[#c5a5a3]'
+                        "
+                        @click="form.ticket_tier = tier.id"
                     >
-                        <!-- Top Badge -->
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <span
-                                    :class="[
-                                        'px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider',
-                                        tier.id === 'vip' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                                        tier.id === 'festival' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
-                                        tier.id === 'cat1' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
-                                        'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
-                                    ]"
-                                >
-                                    {{ tier.badge }}
-                                </span>
-                                <span class="text-xs text-slate-400">Sisa ~{{ tier.quota }} tiket</span>
-                            </div>
-
-                            <h3 class="text-xl font-black text-white">{{ tier.name }}</h3>
-                            <p class="text-xs text-slate-400 mt-1 min-h-[36px]">{{ tier.description }}</p>
-
-                            <div class="mt-6 mb-6 pb-6 border-b border-white/10">
-                                <div class="text-2xl sm:text-3xl font-black text-white">
-                                    {{ formatRupiah(tier.price) }}
-                                </div>
-                                <span class="text-xs text-slate-400">per tiket (belum termasuk pajak)</span>
-                            </div>
-
-                            <!-- Perks List -->
-                            <ul class="space-y-3 text-xs sm:text-[13px] text-slate-300 mb-8">
-                                <li v-for="(perk, pidx) in tier.perks" :key="pidx" class="flex items-start gap-2.5">
-                                    <CheckCircle2 class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                                    <span>{{ perk }}</span>
-                                </li>
-                            </ul>
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="rounded-full bg-[#eee8f5] px-2.5 py-1 text-[10px] font-bold uppercase text-[#80629a]">{{ tier.badge }}</span
+                            ><Check v-if="form.ticket_tier === tier.id" class="h-5 w-5 text-[#a06c78]" />
                         </div>
-
-                        <!-- Button Action -->
-                        <button
-                            type="button"
-                            :class="[
-                                'w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2',
-                                form.ticket_tier === tier.id
-                                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 shadow-lg shadow-orange-500/25'
-                                    : 'bg-white/10 hover:bg-white/15 text-slate-200'
-                            ]"
-                        >
-                            <span v-if="form.ticket_tier === tier.id">✓ Kategori Dipilih</span>
-                            <span v-else>Pilih Kategori Ini</span>
-                        </button>
-                    </div>
+                        <h3 class="mt-6 min-h-12 font-bold text-[#49365d]">{{ tier.name }}</h3>
+                        <p class="mt-2 text-2xl font-bold text-[#a06c78]">{{ formatRupiah(tier.price) }}</p>
+                        <p class="mt-4 flex-1 text-sm leading-6 text-[#817783]">{{ tier.description }}</p>
+                        <p class="mt-5 border-t border-[#eee4df] pt-3 text-xs font-semibold text-[#a06c78]">{{ tier.quota }} tiket tersedia</p>
+                    </article>
                 </div>
             </section>
 
-            <!-- STAGE LAYOUT SECTION -->
-            <section id="stage" class="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="rounded-3xl p-6 sm:p-10 bg-stone-900/60 border border-white/10 backdrop-blur-xl">
-                    <div class="text-center max-w-2xl mx-auto mb-8">
-                        <span class="text-xs uppercase tracking-widest font-extrabold text-orange-400">Arena Map</span>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Denah Panggung & Zona Tempat Duduk</h2>
-                        <p class="text-xs sm:text-sm text-slate-400 mt-2">
-                            Klik pada zona di bawah untuk memilih kategori tiket langsung ke formulir pemesanan.
+            <section id="order" class="bg-[#eee8f5]">
+                <div class="mx-auto grid max-w-6xl gap-10 px-5 py-20 lg:grid-cols-[1fr_.75fr] lg:px-8">
+                    <div>
+                        <p class="text-sm font-bold uppercase tracking-[0.16em] text-[#80629a]">Amankan tiket</p>
+                        <h2 class="mt-2 font-serif text-4xl text-[#49365d]" style="font-family: 'Playfair Display', serif">Buat pesanan</h2>
+                        <p class="mt-3 text-[#716a78]">Isi data dengan benar. E-ticket akan dikirim ke alamat email yang kamu masukkan.</p>
+                        <form class="mt-8 grid gap-5 sm:grid-cols-2" @submit.prevent="submitForm">
+                            <label class="sm:col-span-2"
+                                >Nama lengkap<input v-model="form.full_name" type="text" placeholder="Nama sesuai kartu identitas" /><small
+                                    v-if="form.errors.full_name"
+                                    >{{ form.errors.full_name }}</small
+                                ></label
+                            ><label
+                                >Email<input v-model="form.email" type="email" placeholder="nama@email.com" /><small v-if="form.errors.email">{{
+                                    form.errors.email
+                                }}</small></label
+                            ><label
+                                >Nomor WhatsApp<input v-model="form.phone" type="tel" placeholder="081234567890" /><small v-if="form.errors.phone">{{
+                                    form.errors.phone
+                                }}</small></label
+                            ><label
+                                >NIK / nomor identitas<input
+                                    v-model="form.identity_number"
+                                    inputmode="numeric"
+                                    maxlength="16"
+                                    placeholder="16 digit nomor identitas"
+                                /><small v-if="form.errors.identity_number">{{ form.errors.identity_number }}</small></label
+                            ><label
+                                >Jumlah tiket<select v-model.number="form.quantity">
+                                    <option v-for="quantity in 4" :key="quantity" :value="quantity">{{ quantity }} tiket</option>
+                                </select></label
+                            ><label class="sm:col-span-2"
+                                >Metode pembayaran<select v-model="form.payment_method">
+                                    <option v-for="method in event.paymentMethods" :key="method.id" :value="method.id">{{ method.name }}</option>
+                                </select></label
+                            ><label class="sm:col-span-2"
+                                >Catatan <span class="font-normal text-[#9b9098]">(opsional)</span
+                                ><textarea v-model="form.notes" rows="2" placeholder="Tambahkan catatan jika perlu"></textarea></label
+                            ><label class="flex items-start gap-3 text-sm font-normal sm:col-span-2"
+                                ><input
+                                    v-model="form.agree_terms"
+                                    type="checkbox"
+                                    class="mt-1 h-4 w-4 rounded border-[#c7b9d1] text-[#a06c78]"
+                                /><span>Saya menyetujui syarat dan ketentuan pembelian tiket.</span></label
+                            ><small v-if="form.errors.agree_terms" class="sm:col-span-2">{{ form.errors.agree_terms }}</small
+                            ><button
+                                :disabled="form.processing"
+                                class="rounded-xl bg-[#a06c78] px-5 py-3.5 font-bold text-white transition hover:bg-[#855968] disabled:opacity-60 sm:col-span-2"
+                            >
+                                {{ form.processing ? 'Memproses pesanan...' : 'Konfirmasi pesanan' }}
+                            </button>
+                        </form>
+                    </div>
+                    <aside class="h-fit rounded-2xl border border-[#ddd0e9] bg-[#fffaf6] p-6 lg:sticky lg:top-28">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-[#49365d]">Ringkasan</h3>
+                            <span class="rounded-full bg-[#e7f2eb] px-3 py-1 text-xs font-bold text-[#4c8064]">Aman</span>
+                        </div>
+                        <div class="mt-6 border-b border-[#e9dfdb] pb-5">
+                            <p class="font-semibold">{{ selectedTier?.name }}</p>
+                            <p class="mt-1 text-sm text-[#817783]">{{ form.quantity }} tiket × {{ formatRupiah(selectedTier?.price ?? 0) }}</p>
+                        </div>
+                        <dl class="space-y-3 py-5 text-sm text-[#817783]">
+                            <div class="flex justify-between">
+                                <dt>Subtotal</dt>
+                                <dd>{{ formatRupiah(subtotal) }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt>Pajak hiburan (10%)</dt>
+                                <dd>{{ formatRupiah(taxAmount) }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt>Biaya admin</dt>
+                                <dd>{{ formatRupiah(5000) }}</dd>
+                            </div>
+                        </dl>
+                        <div class="flex justify-between border-t border-[#e9dfdb] pt-5 font-bold text-[#49365d]">
+                            <span>Total</span><span class="text-[#a06c78]">{{ formatRupiah(totalPrice) }}</span>
+                        </div>
+                        <p class="mt-6 text-xs leading-5 text-[#817783]">
+                            <ShieldCheck class="mr-1 inline h-4 w-4 text-[#5b9375]" />Data kamu hanya digunakan untuk penerbitan tiket.
                         </p>
-                    </div>
-
-                    <!-- Interactive SVG Styled Stage Illustration -->
-                    <div class="relative bg-black/80 rounded-2xl border border-white/10 p-6 flex flex-col items-center overflow-hidden">
-                        <!-- Stage Box -->
-                        <div class="w-full max-w-md py-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-center font-black tracking-widest uppercase text-slate-950 shadow-lg shadow-orange-500/25 mb-4 text-sm sm:text-base border border-amber-300/40">
-                            🎤 MAIN STAGE (PANGGUNG UTAMA)
-                        </div>
-
-                        <!-- VIP Pit -->
-                        <div
-                            @click="form.ticket_tier = 'vip'; scrollToSection('form-order')"
-                            :class="[
-                                'w-full max-w-lg py-5 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
-                                form.ticket_tier === 'vip'
-                                    ? 'bg-amber-500/25 border-amber-400 text-amber-200 ring-2 ring-amber-400 shadow-md shadow-amber-950/50'
-                                    : 'bg-amber-950/25 border-amber-500/40 text-amber-300 hover:bg-amber-950/40'
-                            ]"
-                        >
-                            <span class="font-extrabold text-sm block">★ VIP LOUNGE & PIT ★</span>
-                            <span class="text-xs opacity-80">Paling dekat dengan artis & Front Stage • Rp 1.750.000</span>
-                        </div>
-
-                        <!-- Festival Pit -->
-                        <div
-                            @click="form.ticket_tier = 'festival'; scrollToSection('form-order')"
-                            :class="[
-                                'w-full max-w-xl py-6 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
-                                form.ticket_tier === 'festival'
-                                    ? 'bg-orange-500/25 border-orange-400 text-orange-200 ring-2 ring-orange-400 shadow-md shadow-orange-950/50'
-                                    : 'bg-orange-950/25 border-orange-500/40 text-orange-300 hover:bg-orange-950/40'
-                            ]"
-                        >
-                            <span class="font-extrabold text-sm block">⚡ FESTIVAL (FREE STANDING) ⚡</span>
-                            <span class="text-xs opacity-80">Area berdiri energik menghadap stage • Rp 950.000</span>
-                        </div>
-
-                        <!-- Sound Console -->
-                        <div class="w-36 py-1.5 rounded-lg bg-stone-800 text-[10px] text-slate-400 uppercase tracking-widest font-bold text-center mb-3">
-                            FOH SOUND CONSOLE
-                        </div>
-
-                        <!-- CAT 1 Seated -->
-                        <div
-                            @click="form.ticket_tier = 'cat1'; scrollToSection('form-order')"
-                            :class="[
-                                'w-full max-w-2xl py-5 px-4 rounded-xl border text-center cursor-pointer transition-all mb-3',
-                                form.ticket_tier === 'cat1'
-                                    ? 'bg-rose-500/25 border-rose-400 text-rose-200 ring-2 ring-rose-400 shadow-md shadow-rose-950/50'
-                                    : 'bg-rose-950/25 border-rose-500/40 text-rose-300 hover:bg-rose-950/40'
-                            ]"
-                        >
-                            <span class="font-extrabold text-sm block">● CAT 1 (NUMBERED SEATING - LOWER TRIBUNE) ●</span>
-                            <span class="text-xs opacity-80">Kursi bernomor pandangan tengah panggung • Rp 650.000</span>
-                        </div>
-
-                        <!-- CAT 2 Tribune -->
-                        <div
-                            @click="form.ticket_tier = 'cat2'; scrollToSection('form-order')"
-                            :class="[
-                                'w-full max-w-3xl py-5 px-4 rounded-xl border text-center cursor-pointer transition-all',
-                                form.ticket_tier === 'cat2'
-                                    ? 'bg-yellow-500/25 border-yellow-400 text-yellow-200 ring-2 ring-yellow-400 shadow-md shadow-yellow-950/50'
-                                    : 'bg-stone-900/80 border-amber-800/40 text-amber-200/90 hover:bg-stone-900'
-                            ]"
-                        >
-                            <span class="font-extrabold text-sm block">▲ CAT 2 (UPPER TRIBUNE) ▲</span>
-                            <span class="text-xs opacity-80">Tribun atas pemandangan luas stadion • Rp 400.000</span>
-                        </div>
-                    </div>
+                    </aside>
                 </div>
             </section>
 
-            <!-- REGISTRATION FORM SECTION -->
-            <section id="form-order" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-12">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Checkout Online</span>
-                    <h2 class="text-3xl sm:text-4xl font-black text-white mt-1">Formulir Pendaftaran Tiket</h2>
-                    <p class="text-slate-400 text-sm mt-2">
-                        Isi data diri dengan teliti. E-Ticket resmi beserta QR Code akan langsung diterbitkan setelah konfirmasi pemesanan.
-                    </p>
-                </div>
-
-                <form @submit.prevent="submitForm">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <!-- LEFT COLUMN: Form Fields (7 cols) -->
-                        <div class="lg:col-span-7 space-y-6">
-                            <!-- Card 1: Data Pemesan -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
-                                <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm">
-                                        1
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-white">Data Diri Pemesan</h3>
-                                        <p class="text-xs text-slate-400">Data ini akan dicantumkan pada E-Ticket resmi.</p>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-5">
-                                    <!-- Nama Lengkap -->
-                                    <div>
-                                        <label for="full_name" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Nama Lengkap (Sesuai KTP/Identitas) <span class="text-amber-400">*</span>
-                                        </label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                                                <User class="w-4 h-4" />
-                                            </div>
-                                            <input
-                                                id="full_name"
-                                                v-model="form.full_name"
-                                                type="text"
-                                                placeholder="Contoh: Raditya Danendra"
-                                                required
-                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
-                                                :class="{ 'border-rose-500': form.errors.full_name }"
-                                            />
-                                        </div>
-                                        <p v-if="form.errors.full_name" class="mt-1 text-xs text-rose-400 flex items-center gap-1">
-                                            <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.full_name }}
-                                        </p>
-                                    </div>
-
-                                    <!-- NIK / Identitas -->
-                                    <div>
-                                        <div class="flex items-center justify-between mb-2">
-                                            <label for="identity_number" class="text-xs font-bold uppercase tracking-wider text-slate-300">
-                                                Nomor Induk Kependudukan (NIK 16 Digit) <span class="text-amber-400">*</span>
-                                            </label>
-                                            <span class="text-[11px] text-slate-400">{{ form.identity_number.length }}/16 digit</span>
-                                        </div>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                                                <IdCard class="w-4 h-4" />
-                                            </div>
-                                            <input
-                                                id="identity_number"
-                                                v-model="form.identity_number"
-                                                type="text"
-                                                maxlength="16"
-                                                placeholder="Contoh: 3171012345678901"
-                                                required
-                                                class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
-                                                :class="{ 'border-rose-500': form.errors.identity_number }"
-                                            />
-                                        </div>
-                                        <p v-if="form.errors.identity_number" class="mt-1 text-xs text-rose-400 flex items-center gap-1">
-                                            <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.identity_number }}
-                                        </p>
-                                        <p class="text-[11px] text-slate-500 mt-1">NIK digunakan untuk verifikasi penukaran wristband di lokasi konser.</p>
-                                    </div>
-
-                                    <!-- Email & WhatsApp Grid -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <div>
-                                            <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                                Email Konfirmasi <span class="text-amber-400">*</span>
-                                            </label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                                                    <Mail class="w-4 h-4" />
-                                                </div>
-                                                <input
-                                                    id="email"
-                                                    v-model="form.email"
-                                                    type="email"
-                                                    placeholder="nama@email.com"
-                                                    required
-                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
-                                                    :class="{ 'border-rose-500': form.errors.email }"
-                                                />
-                                            </div>
-                                            <p v-if="form.errors.email" class="mt-1 text-xs text-rose-400 flex items-center gap-1">
-                                                <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.email }}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                                No. WhatsApp / HP Aktif <span class="text-amber-400">*</span>
-                                            </label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                                                    <Phone class="w-4 h-4" />
-                                                </div>
-                                                <input
-                                                    id="phone"
-                                                    v-model="form.phone"
-                                                    type="tel"
-                                                    placeholder="081234567890"
-                                                    required
-                                                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
-                                                    :class="{ 'border-rose-500': form.errors.phone }"
-                                                />
-                                            </div>
-                                            <p v-if="form.errors.phone" class="mt-1 text-xs text-rose-400 flex items-center gap-1">
-                                                <AlertCircle class="w-3.5 h-3.5" /> {{ form.errors.phone }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card 2: Jumlah & Kategori Tiket -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
-                                <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-sm">
-                                        2
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-white">Pilihan Kategori & Jumlah Tiket</h3>
-                                        <p class="text-xs text-slate-400">Pilih kategori dan tentukan banyak tiket yang ingin dipesan.</p>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-5">
-                                    <!-- Quick Radio Cards for Tier -->
-                                    <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Kategori Tiket <span class="text-amber-400">*</span>
-                                        </label>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <div
-                                                v-for="tier in event.tiers"
-                                                :key="tier.id"
-                                                @click="form.ticket_tier = tier.id"
-                                                :class="[
-                                                    'p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between',
-                                                    form.ticket_tier === tier.id
-                                                        ? 'bg-orange-950/40 border-amber-500 ring-1 ring-amber-500'
-                                                        : 'bg-black/50 border-white/10 hover:border-white/20'
-                                                ]"
-                                            >
-                                                <div>
-                                                    <span class="font-bold text-sm text-white block">{{ tier.name }}</span>
-                                                    <span class="text-xs text-amber-400 font-semibold">{{ formatRupiah(tier.price) }}</span>
-                                                </div>
-                                                <div
-                                                    :class="[
-                                                        'w-5 h-5 rounded-full border flex items-center justify-center text-xs',
-                                                        form.ticket_tier === tier.id
-                                                            ? 'bg-amber-500 border-amber-500 text-slate-950'
-                                                            : 'border-slate-600'
-                                                    ]"
-                                                >
-                                                    <Check v-if="form.ticket_tier === tier.id" class="w-3.5 h-3.5 stroke-[3]" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Quantity Stepper -->
-                                    <div class="pt-2">
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Jumlah Tiket (Maksimal 4 Tiket per Transaksi) <span class="text-amber-400">*</span>
-                                        </label>
-                                        <div class="flex items-center gap-4">
-                                            <div class="inline-flex items-center rounded-2xl border border-white/15 bg-black/80 p-1.5">
-                                                <button
-                                                    type="button"
-                                                    @click="form.quantity = Math.max(1, form.quantity - 1)"
-                                                    :disabled="form.quantity <= 1"
-                                                    class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 flex items-center justify-center text-lg font-bold text-white transition-all"
-                                                >
-                                                    -
-                                                </button>
-                                                <span class="w-16 text-center text-lg font-extrabold text-white">
-                                                    {{ form.quantity }}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    @click="form.quantity = Math.min(4, form.quantity + 1)"
-                                                    :disabled="form.quantity >= 4"
-                                                    class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-white/5 flex items-center justify-center text-lg font-bold text-white transition-all"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                            <span class="text-xs text-slate-400">
-                                                Total {{ form.quantity }} Tiket ({{ selectedTier.name }})
-                                            </span>
-                                        </div>
-                                        <p v-if="form.errors.quantity" class="mt-1 text-xs text-rose-400">
-                                            {{ form.errors.quantity }}
-                                        </p>
-                                    </div>
-
-                                    <!-- Notes (Optional) -->
-                                    <div>
-                                        <label for="notes" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                                            Catatan Khusus (Opsional)
-                                        </label>
-                                        <textarea
-                                            id="notes"
-                                            v-model="form.notes"
-                                            rows="2"
-                                            placeholder="Contoh: Kebutuhan kursi roda atau permintaan akses ramah difabel."
-                                            class="w-full px-4 py-3 rounded-xl bg-black/80 border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm transition-all"
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card 3: Metode Pembayaran -->
-                            <div class="rounded-3xl p-6 sm:p-8 bg-stone-900/70 border border-white/10 backdrop-blur-xl shadow-xl">
-                                <div class="flex items-center gap-3 pb-4 mb-6 border-b border-white/10">
-                                    <div class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 font-bold text-sm">
-                                        3
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-white">Metode Pembayaran</h3>
-                                        <p class="text-xs text-slate-400">Pilih channel pembayaran yang paling praktis untuk Anda.</p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div
-                                        v-for="method in event.paymentMethods"
-                                        :key="method.id"
-                                        @click="form.payment_method = method.id"
-                                        :class="[
-                                            'p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between',
-                                            form.payment_method === method.id
-                                                ? 'bg-orange-950/30 border-amber-400 ring-1 ring-amber-400/50 shadow-md shadow-orange-950/50'
-                                                : 'bg-black/50 border-white/10 hover:border-white/20'
-                                        ]"
-                                    >
-                                        <div class="flex items-start justify-between mb-2">
-                                            <span class="font-bold text-sm text-white">{{ method.name }}</span>
-                                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
-                                                {{ method.badge }}
-                                            </span>
-                                        </div>
-                                        <p class="text-xs text-slate-400">{{ method.desc }}</p>
-                                    </div>
-                                </div>
-                                <p v-if="form.errors.payment_method" class="mt-2 text-xs text-rose-400">
-                                    {{ form.errors.payment_method }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT COLUMN: Order Summary & Checkout Action (5 cols) -->
-                        <div class="lg:col-span-5 sticky top-28 space-y-6">
-                            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-b from-stone-900/90 via-stone-900/80 to-black border border-white/15 backdrop-blur-xl shadow-2xl">
-                                <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                        <Ticket class="w-5 h-5 text-amber-400" />
-                                        <span>Ringkasan Pesanan</span>
-                                    </h3>
-                                    <span class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
-                                        Phase 2
-                                    </span>
-                                </div>
-
-                                <!-- Concert Event Mini Card -->
-                                <div class="mt-5 p-4 rounded-2xl bg-white/5 border border-white/10">
-                                    <span class="text-xs text-slate-400 block">{{ event.title }}</span>
-                                    <span class="font-bold text-sm text-white block mt-0.5">{{ selectedTier.name }}</span>
-                                    <span class="text-xs text-slate-400 block mt-1">
-                                        {{ event.date }} • GBK Jakarta
-                                    </span>
-                                </div>
-
-                                <!-- Cost Breakdown -->
-                                <div class="mt-6 space-y-3.5 text-sm text-slate-300 pb-6 border-b border-white/10">
-                                    <div class="flex items-center justify-between">
-                                        <span>Harga Tiket ({{ form.quantity }}x)</span>
-                                        <span class="font-semibold text-white">{{ formatRupiah(subtotal) }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span>Pajak Hiburan Konser (10%)</span>
-                                        <span class="font-medium text-slate-300">{{ formatRupiah(taxAmount) }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs text-slate-400">
-                                        <span>Biaya Layanan & Sistem</span>
-                                        <span class="font-medium text-slate-300">{{ formatRupiah(adminFee) }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Total Payment -->
-                                <div class="mt-6 flex items-baseline justify-between">
-                                    <div>
-                                        <span class="text-xs uppercase tracking-wider text-slate-400 block font-bold">Total Pembayaran</span>
-                                        <span class="text-[11px] text-amber-400">Termasuk pajak & biaya admin</span>
-                                    </div>
-                                    <div class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-amber-200 via-orange-300 to-rose-300 bg-clip-text text-transparent">
-                                        {{ formatRupiah(totalPrice) }}
-                                    </div>
-                                </div>
-
-                                <!-- Agreement Checkbox -->
-                                <div class="mt-6 pt-4 border-t border-white/10">
-                                    <label class="flex items-start gap-3 cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            v-model="form.agree_terms"
-                                            required
-                                            class="w-4 h-4 mt-0.5 rounded border-white/20 bg-black text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
-                                        />
-                                        <span class="text-xs text-slate-400 leading-snug">
-                                            Saya menyatakan bahwa data yang diisi sudah benar dan menyetujui
-                                            <a href="#faq" class="text-amber-400 hover:underline">Syarat & Ketentuan Konser</a>
-                                            serta kebijakan penukaran wristband.
-                                        </span>
-                                    </label>
-                                    <p v-if="form.errors.agree_terms" class="mt-2 text-xs text-rose-400">
-                                        {{ form.errors.agree_terms }}
-                                    </p>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button
-                                    type="submit"
-                                    :disabled="form.processing"
-                                    class="mt-6 w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 disabled:opacity-50 text-slate-950 font-black text-base tracking-wide shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all flex items-center justify-center gap-2 transform active:scale-95"
-                                >
-                                    <span v-if="form.processing" class="inline-flex items-center gap-2">
-                                        <svg class="animate-spin h-5 w-5 text-slate-950" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                        </svg>
-                                        Memproses Pendaftaran...
-                                    </span>
-                                    <span v-else class="inline-flex items-center gap-2">
-                                        <CheckCircle2 class="w-5 h-5 text-slate-950" />
-                                        Daftar & Konfirmasi Tiket
-                                    </span>
-                                </button>
-
-                                <!-- Trust Badges -->
-                                <div class="mt-6 flex items-center justify-center gap-6 text-[11px] text-slate-400">
-                                    <div class="flex items-center gap-1.5">
-                                        <ShieldCheck class="w-4 h-4 text-amber-400" />
-                                        <span>100% Tiket Resmi</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <QrCode class="w-4 h-4 text-orange-400" />
-                                        <span>E-Ticket QR Otomatis</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </section>
-
-            <!-- FAQ SECTION -->
-            <section id="faq" class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-12">
-                    <span class="text-xs uppercase tracking-widest font-extrabold text-amber-400">Pusat Bantuan</span>
-                    <h2 class="text-3xl font-extrabold text-white mt-1">Pertanyaan Seputar Konser (FAQ)</h2>
-                    <p class="text-sm text-slate-400 mt-2">Segala informasi penting yang wajib Anda ketahui sebelum hadir ke venue.</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div
-                        v-for="(faq, idx) in faqs"
-                        :key="idx"
-                        class="rounded-2xl border border-white/10 bg-stone-900/60 backdrop-blur-xl overflow-hidden transition-colors"
-                    >
+            <section id="faq" class="mx-auto max-w-3xl px-5 py-20 lg:px-8">
+                <p class="text-center text-sm font-bold uppercase tracking-[0.16em] text-[#a06c78]">Pusat bantuan</p>
+                <h2 class="mt-2 text-center font-serif text-4xl text-[#49365d]" style="font-family: 'Playfair Display', serif">Pertanyaan umum</h2>
+                <div class="mt-10 divide-y divide-[#e9dfdb] border-y border-[#e9dfdb]">
+                    <div v-for="(faq, index) in faqs" :key="faq[0]" class="py-5">
                         <button
-                            type="button"
-                            @click="toggleFaq(idx)"
-                            class="w-full p-5 text-left font-bold text-sm sm:text-base text-slate-100 flex items-center justify-between gap-4 hover:text-amber-300 transition-colors"
+                            class="flex w-full items-center justify-between text-left font-semibold text-[#49365d]"
+                            @click="openFaq = openFaq === index ? null : index"
                         >
-                            <span>{{ faq.q }}</span>
-                            <span class="text-xs w-6 h-6 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
-                                {{ openFaq === idx ? '−' : '+' }}
-                            </span>
+                            {{ faq[0] }}<ChevronDown class="h-5 w-5 transition" :class="{ 'rotate-180': openFaq === index }" />
                         </button>
-                        <div v-show="openFaq === idx" class="px-5 pb-5 text-xs sm:text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-3">
-                            {{ faq.a }}
-                        </div>
+                        <p v-if="openFaq === index" class="mt-3 max-w-2xl text-sm leading-6 text-[#817783]">{{ faq[1] }}</p>
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- FOOTER -->
-        <footer class="border-t border-white/10 bg-[#070407] py-12 text-slate-500 text-xs">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-                <div>
-                    <div class="flex items-center justify-center sm:justify-start gap-2 mb-2">
-                        <Music class="w-4 h-4 text-amber-400" />
-                        <span class="font-extrabold text-white tracking-wide">NEON ECHOES FESTIVAL 2025</span>
-                    </div>
-                    <p>© 2025 Promotor Musik Indonesia. Seluruh hak cipta dilindungi undang-undang.</p>
-                </div>
-                <div class="flex items-center gap-6">
-                    <a href="#kategori" class="hover:text-slate-300">Tiket</a>
-                    <a href="#stage" class="hover:text-slate-300">Denah</a>
-                    <a href="#faq" class="hover:text-slate-300">Ketentuan</a>
-                    <button @click="checkModalOpen = true" class="text-amber-400 hover:underline">Cek E-Ticket</button>
-                </div>
-            </div>
+        <footer class="border-t border-[#e9dfdb] bg-[#49365d] px-5 py-10 text-center text-sm text-[#e5dcef]">
+            <p class="font-serif text-xl text-white" style="font-family: 'Playfair Display', serif">Neon Echoes Festival</p>
+            <p class="mt-2">Satu malam untuk musik, teman, dan cerita baru.</p>
+            <p class="mt-5 text-xs text-[#bdb0cc]">© 2025 Neon Echoes Festival. Semua hak dilindungi.</p>
         </footer>
 
-        <!-- MODAL: CEK STATUS TIKET -->
-        <div v-if="checkModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div class="relative w-full max-w-md rounded-3xl bg-stone-900 border border-white/15 p-6 sm:p-8 shadow-2xl">
-                <button
-                    @click="checkModalOpen = false; searchError = ''"
-                    class="absolute top-5 right-5 text-slate-400 hover:text-white"
-                >
-                    <X class="w-5 h-5" />
-                </button>
-
-                <div class="text-center mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto mb-3">
-                        <Search class="w-6 h-6" />
-                    </div>
-                    <h3 class="text-xl font-extrabold text-white">Cari E-Ticket Anda</h3>
-                    <p class="text-xs text-slate-400 mt-1">
-                        Masukkan Kode Booking (contoh: NEON-2025-XXXXX), Nomor NIK, atau Alamat Email terdaftar.
-                    </p>
+        <div v-if="checkOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-[#302d3d]/40 px-5" @click.self="checkOpen = false">
+            <div class="w-full max-w-md rounded-2xl bg-[#fffaf6] p-6 shadow-2xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-serif text-2xl text-[#49365d]" style="font-family: 'Playfair Display', serif">Cek e-ticket</h2>
+                    <button @click="checkOpen = false"><X class="h-5 w-5" /></button>
                 </div>
-
-                <form @submit.prevent="searchTicket" class="space-y-4">
-                    <div>
-                        <input
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Kode Booking / NIK / Email"
-                            required
-                            class="w-full px-4 py-3 rounded-xl bg-black border border-white/15 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 text-sm"
-                        />
-                    </div>
-
-                    <p v-if="searchError" class="text-xs text-rose-400 flex items-center gap-1">
-                        <AlertCircle class="w-4 h-4 flex-shrink-0" />
-                        <span>{{ searchError }}</span>
-                    </p>
-
-                    <button
-                        type="submit"
-                        :disabled="isSearching"
-                        class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:via-orange-400 hover:to-rose-500 disabled:opacity-50 text-slate-950 font-black text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25"
-                    >
-                        <span v-if="isSearching">Mencari Tiket...</span>
-                        <span v-else>Cari E-Ticket</span>
+                <p class="mt-2 text-sm text-[#817783]">Cari dengan kode booking, email, atau NIK.</p>
+                <form class="mt-6" @submit.prevent="searchTicket">
+                    <input v-model="searchQuery" autofocus type="text" placeholder="Contoh: NEON-2025-AB123" />
+                    <p v-if="searchError" class="mt-2 text-sm text-[#a05d61]">{{ searchError }}</p>
+                    <button :disabled="searching" class="mt-4 w-full rounded-xl bg-[#a06c78] py-3 font-bold text-white">
+                        {{ searching ? 'Mencari...' : 'Cari tiket' }}
                     </button>
                 </form>
             </div>
         </div>
 
-        <!-- MODAL: E-TICKET RECEIPT DISPLAY -->
-        <div v-if="isReceiptModalOpen && activeTicket" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-            <div class="relative w-full max-w-lg my-8 rounded-3xl bg-[#140d12] border border-amber-500/40 p-6 sm:p-8 shadow-2xl shadow-orange-950/70 print:m-0 print:border-none print:shadow-none print:bg-white print:text-black">
-                <!-- Close Button (Hidden on Print) -->
-                <button
-                    @click="closeReceipt"
-                    class="absolute top-5 right-5 text-slate-400 hover:text-white print:hidden"
-                >
-                    <X class="w-5 h-5" />
+        <div
+            v-if="receiptOpen && activeTicket"
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#302d3d]/40 px-5 py-8"
+            @click.self="receiptOpen = false"
+        >
+            <div class="w-full max-w-lg rounded-2xl bg-[#fffaf6] p-6 shadow-2xl">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-[0.15em] text-[#a06c78]">E-ticket terkonfirmasi</p>
+                        <h2 class="mt-2 font-serif text-3xl text-[#49365d]" style="font-family: 'Playfair Display', serif">Sampai jumpa di GBK.</h2>
+                    </div>
+                    <button @click="receiptOpen = false"><X class="h-5 w-5" /></button>
+                </div>
+                <div class="mt-6 rounded-xl border-2 border-dashed border-[#cdb7e5] bg-[#eee8f5] p-5 text-center">
+                    <p class="text-xs font-bold uppercase tracking-[0.15em] text-[#80629a]">Kode booking</p>
+                    <p class="mt-2 font-mono text-2xl font-bold tracking-widest text-[#49365d]">{{ activeTicket.booking_code }}</p>
+                    <button class="mt-3 text-xs font-bold text-[#80629a]" @click="copyCode">
+                        <Copy class="mr-1 inline h-3.5 w-3.5" />{{ copied ? 'Tersalin' : 'Salin kode' }}
+                    </button>
+                </div>
+                <dl class="mt-6 divide-y divide-[#e9dfdb] text-sm">
+                    <div class="flex justify-between py-3">
+                        <dt class="text-[#817783]">Nama</dt>
+                        <dd class="font-semibold">{{ activeTicket.full_name }}</dd>
+                    </div>
+                    <div class="flex justify-between py-3">
+                        <dt class="text-[#817783]">Kategori</dt>
+                        <dd class="font-semibold uppercase">{{ activeTicket.ticket_tier }} · {{ activeTicket.quantity }} tiket</dd>
+                    </div>
+                    <div class="flex justify-between py-3">
+                        <dt class="text-[#817783]">Pembayaran</dt>
+                        <dd class="font-semibold uppercase">{{ activeTicket.payment_method }}</dd>
+                    </div>
+                    <div class="flex justify-between py-3">
+                        <dt class="text-[#817783]">Total</dt>
+                        <dd class="font-bold text-[#a06c78]">{{ formatRupiah(activeTicket.total_price) }}</dd>
+                    </div>
+                </dl>
+                <div class="mt-6 rounded-xl bg-[#e7f2eb] p-4 text-sm leading-6 text-[#35644c]">
+                    <CheckCircle2 class="mr-1 inline h-4 w-4" /> E-ticket dikirim ke <strong>{{ activeTicket.email }}</strong
+                    >. Bawa kartu identitas asli saat penukaran wristband.
+                </div>
+                <button class="mt-5 w-full rounded-xl border border-[#d9c8c0] py-3 font-bold text-[#6e6878]" @click="receiptOpen = false">
+                    Tutup
                 </button>
-
-                <!-- Ticket Header -->
-                <div class="text-center pb-6 border-b border-white/10 print:border-slate-300">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 print:border-amber-600 print:text-amber-700">
-                        <CheckCircle2 class="w-3.5 h-3.5" /> E-TICKET RESMI TERKONFIRMASI
-                    </span>
-                    <h3 class="text-2xl font-black text-white print:text-black">{{ event.title }}</h3>
-                    <p class="text-xs text-slate-400 print:text-slate-600 mt-1">
-                        {{ event.date }} • {{ event.time }} • {{ event.venue }}
-                    </p>
-                </div>
-
-                <!-- Booking Code Box -->
-                <div class="my-6 p-4 rounded-2xl bg-black/80 border border-dashed border-amber-500/40 text-center print:bg-slate-100 print:border-slate-400">
-                    <span class="text-[11px] uppercase tracking-widest text-slate-400 print:text-slate-600 font-bold block">
-                        KODE BOOKING TIKET
-                    </span>
-                    <div class="flex items-center justify-center gap-3 mt-1">
-                        <span class="text-2xl sm:text-3xl font-black tracking-widest text-amber-400 print:text-amber-700">
-                            {{ activeTicket.booking_code }}
-                        </span>
-                        <button
-                            type="button"
-                            @click="copyBookingCode(activeTicket.booking_code)"
-                            class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 transition-colors print:hidden"
-                            title="Salin Kode"
-                        >
-                            <Check v-if="isCopied" class="w-4 h-4 text-emerald-400" />
-                            <Copy v-else class="w-4 h-4" />
-                        </button>
-                    </div>
-                    <span v-if="isCopied" class="text-[11px] text-amber-400 mt-1 block">Kode booking disalin ke clipboard!</span>
-                </div>
-
-                <!-- Mock QR Code Barcode -->
-                <div class="flex flex-col items-center justify-center p-4 rounded-2xl bg-white text-black mb-6">
-                    <!-- SVG Styled QR Code -->
-                    <div class="w-36 h-36 border-4 border-black p-2 flex items-center justify-center">
-                        <svg class="w-full h-full" viewBox="0 0 100 100" fill="currentColor">
-                            <!-- Pattern squares simulating a QR -->
-                            <rect x="5" y="5" width="25" height="25" />
-                            <rect x="9" y="9" width="17" height="17" fill="white" />
-                            <rect x="13" y="13" width="9" height="9" />
-
-                            <rect x="70" y="5" width="25" height="25" />
-                            <rect x="74" y="9" width="17" height="17" fill="white" />
-                            <rect x="78" y="13" width="9" height="9" />
-
-                            <rect x="5" y="70" width="25" height="25" />
-                            <rect x="9" y="74" width="17" height="17" fill="white" />
-                            <rect x="13" y="78" width="9" height="9" />
-
-                            <rect x="40" y="10" width="6" height="6" />
-                            <rect x="52" y="10" width="6" height="6" />
-                            <rect x="40" y="22" width="6" height="6" />
-                            <rect x="52" y="22" width="6" height="6" />
-
-                            <rect x="36" y="36" width="28" height="28" />
-                            <rect x="42" y="42" width="16" height="16" fill="white" />
-                            <rect x="47" y="47" width="6" height="6" />
-
-                            <rect x="10" y="45" width="6" height="6" />
-                            <rect x="22" y="52" width="6" height="6" />
-                            <rect x="70" y="45" width="8" height="8" />
-                            <rect x="82" y="55" width="8" height="8" />
-
-                            <rect x="40" y="72" width="6" height="6" />
-                            <rect x="52" y="82" width="6" height="6" />
-                            <rect x="72" y="72" width="18" height="6" />
-                            <rect x="72" y="82" width="6" height="12" />
-                            <rect x="84" y="82" width="8" height="8" />
-                        </svg>
-                    </div>
-                    <span class="text-[10px] tracking-widest font-mono text-slate-700 mt-2">
-                        SCAN SAAT PENUKARAN WRISTBAND
-                    </span>
-                </div>
-
-                <!-- Detail Tiket Table -->
-                <div class="space-y-2.5 text-xs text-slate-300 print:text-slate-800 pb-6 border-b border-white/10 print:border-slate-300">
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">Nama Pemegang:</span>
-                        <span class="font-bold text-white print:text-black">{{ activeTicket.full_name }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">NIK (KTP):</span>
-                        <span class="font-bold text-white print:text-black">{{ activeTicket.identity_number }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">Email:</span>
-                        <span class="font-medium text-white print:text-black">{{ activeTicket.email }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">Nomor HP:</span>
-                        <span class="font-medium text-white print:text-black">{{ activeTicket.phone }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">Kategori Tiket:</span>
-                        <span class="font-extrabold uppercase text-amber-400 print:text-amber-700">
-                            {{ activeTicket.ticket_tier }} ({{ activeTicket.quantity }} Tiket)
-                        </span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 print:text-slate-600">Metode Pembayaran:</span>
-                        <span class="font-bold uppercase text-white print:text-black">{{ activeTicket.payment_method }}</span>
-                    </div>
-                    <div class="flex justify-between pt-2 border-t border-white/10 print:border-slate-300">
-                        <span class="text-slate-400 print:text-slate-600 font-bold">Total Pembayaran:</span>
-                        <span class="font-black text-sm text-amber-400 print:text-amber-700">
-                            {{ formatRupiah(activeTicket.total_price) }}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Action Buttons (Print / Download / Close) -->
-                <div class="mt-6 flex flex-wrap items-center gap-3 print:hidden">
-                    <button
-                        type="button"
-                        @click="printTicket"
-                        class="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
-                    >
-                        <Printer class="w-4 h-4" /> Cetak / Simpan PDF
-                    </button>
-                    <button
-                        type="button"
-                        @click="closeReceipt"
-                        class="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-lg shadow-orange-500/25"
-                    >
-                        Selesai
-                    </button>
-                </div>
             </div>
         </div>
     </div>
 </template>
 
-<style>
-@media print {
-    body {
-        background-color: white !important;
-        color: black !important;
-    }
+<style scoped>
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #49365d;
+}
+input:not([type='checkbox']),
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #d9cdd5;
+    border-radius: 0.75rem;
+    background: #fffaf6;
+    padding: 0.75rem 0.9rem;
+    color: #302d3d;
+    outline: none;
+}
+input:not([type='checkbox']):focus,
+select:focus,
+textarea:focus {
+    border-color: #a06c78;
+    box-shadow: 0 0 0 3px #a06c7820;
+}
+label small {
+    color: #a05d61;
+    font-weight: 500;
+}
+button {
+    transition:
+        color 0.2s,
+        background-color 0.2s,
+        border-color 0.2s,
+        opacity 0.2s;
 }
 </style>

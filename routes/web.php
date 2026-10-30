@@ -8,6 +8,7 @@ use App\Http\Controllers\TicketController;
 Route::get('/', [TicketController::class, 'index'])->name('home');
 Route::post('/ticket/register', [TicketController::class, 'store'])->name('ticket.store');
 Route::get('/ticket/check', [TicketController::class, 'check'])->name('ticket.check');
+Route::get('/ticket/{bookingCode}', [TicketController::class, 'show'])->name('ticket.show');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
