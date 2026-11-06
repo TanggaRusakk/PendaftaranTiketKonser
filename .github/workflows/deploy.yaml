@@ -57,6 +57,13 @@ jobs:
         npm ci
         npm run build
 
+    - name: Upload Built Frontend Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: public/build
+        if-no-files-found: error
+
     - name: Verify Inertia page files
       run: |
         test -f resources/js/pages/Welcome.vue
@@ -102,6 +109,12 @@ jobs:
     # shipped to the server separately, since the server does not have Composer.
     - name: Install Production Composer Dependencies
       run: composer install --no-dev --optimize-autoloader --prefer-dist --no-ansi --no-interaction --no-progress
+
+    - name: Download Built Frontend Assets
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: public/build
 
     - name: Package Vendor Directory
       run: tar -czf vendor.tar.gz vendor
