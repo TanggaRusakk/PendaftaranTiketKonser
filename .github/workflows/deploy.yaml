@@ -26,8 +26,8 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
-        extensions: mbstring, xml, ctype, iconv, mysql, bcmath, filter, zip
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, mysql, pdo_mysql, bcmath, filter, zip
         tools: composer:v2
         coverage: none
 
@@ -57,9 +57,14 @@ jobs:
         npm ci
         npm run build
 
-    - name: Run Migrations & Tests
+    - name: Verify Inertia page files
       run: |
-        php artisan migrate --env=testing
+        test -f resources/js/pages/Welcome.vue
+        test -f resources/js/pages/TicketDetails.vue
+
+    - name: Run Tests
+      run: |
+        php artisan migrate:fresh --env=testing --force
         php artisan test
       env:
         DB_CONNECTION: mysql
@@ -68,17 +73,6 @@ jobs:
         DB_DATABASE: testing
         DB_USERNAME: root
         DB_PASSWORD: ""
-
-    # Optional: Push compiled production assets back to Git if your deployment relies on Git integration
-    - name: Commit Built Assets (If required by your hosting Git sync)
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
-        git add public/build -f
-        git diff-index --quiet HEAD || git commit -m "chore: build production assets [skip ci]"
-        git push origin main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   deploy:
     name: Deploy to Live Hosting
@@ -92,8 +86,8 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.5'
-        extensions: mbstring, xml, ctype, iconv, bcmath, filter, zip
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, mysql, pdo_mysql, bcmath, filter, zip
         tools: composer:v2
         coverage: none
 
@@ -112,6 +106,9 @@ jobs:
     - name: Package Vendor Directory
       run: tar -czf vendor.tar.gz vendor
 
+    - name: Package Built Frontend Assets
+      run: tar -czf public-build.tar.gz -C public build
+
     - name: Upload Vendor Package to Server
       uses: appleboy/scp-action@v1.0.0
       with:
@@ -120,6 +117,16 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         port: 22
         source: "vendor.tar.gz"
+        target: "/home/fsd-anggatiket/htdocs/anggatiket.fsd.my.id"
+
+    - name: Upload Built Frontend Assets to Server
+      uses: appleboy/scp-action@v1.0.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: 22
+        source: "public-build.tar.gz"
         target: "/home/fsd-anggatiket/htdocs/anggatiket.fsd.my.id"
 
     - name: Deploy via SSH
@@ -131,9 +138,14 @@ jobs:
         port: 22
         script: |
           cd /home/fsd-anggatiket/htdocs/anggatiket.fsd.my.id
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
           rm -rf vendor
           tar -xzf vendor.tar.gz
           rm -f vendor.tar.gz
+          rm -rf public/build
+          tar -xzf public-build.tar.gz -C public
+          rm -f public-build.tar.gz
           php artisan migrate --force
+          php artisan optimize:clear
           php artisan config:cache
